@@ -1,0 +1,36 @@
+################## deployment ##############################
+deployment:
+  dotnetenv: #{DOTNET_ENVIRONMENT}#
+  deploymentsecret: #{deploymentSecret}#
+  memory: #{memory}#
+  cpu: #{cpu}#
+
+################## service #################################
+service:
+  enableService: #{enableService}#
+
+################## hpa #####################################
+hpa:
+  maxreplicas: #{maxreplicas}#
+  minreplicas: #{minreplicas}#
+  cpuutilization: #{cpuutilization}#
+  memoryutilization: #{memoryutilization}#
+
+
+################## secret ##################################
+secret:
+  dockersecret: #{dockersecret}#   
+
+################## Ingress ##################################
+ingress:
+  hostName: #{hostName}#  
+  enableIngress: #{enableIngress}#
+
+
+################## Global Values ###########################
+apptype: #{apptype}#
+appname: #{appname}#
+buildname: #{buildname}#
+namespace: #{namespace}#
+
+  

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ .Values.appname }}
+    namespace: {{ .Values.namespace }}
+    labels:
+        app: {{ .Values.appname }}
+spec:
+    selector:
+        matchLabels:
+            app: {{ .Values.appname }}
+    template:
+        metadata:
+            labels:
+                app: {{ .Values.appname }}
+        spec:
+            nodeSelector:
+                kubernetes.io/os: linux        
+            containers:
+            - name: {{ .Values.appname }}
+              image: vantageacreastus2.azurecr.io/{{ .Values.appname }}:{{ .Values.buildname }}
+              ports:
+                - containerPort: 80
+              resources:
+                requests:
+                  memory: {{ .Values.deployment.memory }}
+                  cpu: {{ .Values.deployment.cpu }}
+                limits:
+                  memory: {{ .Values.deployment.memory }}
+                  cpu: {{ .Values.deployment.cpu }}                
+              env:
+              - name: "DOTNET_ENVIRONMENT"
+                value: {{ .Values.deployment.dotnetenv }}                              
+              volumeMounts:
+              - name: configmap-{{ .Values.appname }}
+                mountPath: /app/appsettings.json
+                subPath: appsettings.json                                       
+            imagePullSecrets:
+                - name: {{ .Values.deployment.deploymentsecret }}           
+            volumes:
+            - name: configmap-{{ .Values.appname }}
+              configMap:
+                name: configmap-{{ .Values.appname }}                                                        
+            nodeSelector:
+              app: {{ .Values.apptype }}
+            tolerations:
+              - key: "app"
+                operator: "Equal"
+                value: "{{ .Values.apptype }}"
+                effect: "NoSchedule"                   

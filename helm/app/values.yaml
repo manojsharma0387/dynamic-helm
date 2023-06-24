@@ -1,0 +1,74 @@
+################## deployment ##############################
+deployment:
+  dotnetenv: #{DOTNET_ENVIRONMENT}#
+  deploymentsecret: #{deploymentSecret}#
+  replicas: #{replicas}#
+  memory: #{memory}#
+  cpu: #{cpu}#
+
+################## service #################################
+service:
+  enableService: #{enableService}#
+
+################## hpa #####################################
+hpa:
+  maxreplicas: #{maxreplicas}#
+  minreplicas: #{minreplicas}#
+  cpuutilization: #{cpuutilization}#
+  memoryutilization: #{memoryutilization}#
+
+
+################## secret ##################################
+secret:
+  dockersecret: #{dockersecret}#   
+
+################## Ingress ##################################
+ingress:
+  hostName: #{hostName}#  
+  enableIngress: #{enableIngress}#
+  
+################## configmap ###############################
+configMap:
+  auth0Domain: #{auth0Domain}#
+  auth0Audience: #{auth0Audience}#
+  vaultUri: #{vaultUri}#
+  redisConnectionString: #{redisConnectionString}#
+  kestralPassword: #{kestralPassword}#
+  clientID: #{clientID}#
+  dataStoreConfig: #{dataStoreConfig}#
+  routerUrl: #{routerUrl}#
+  enableMFE: #{enableMFE}#
+  enableMS: #{enableMS}#
+  usePinnacleTechCertificate: #{usePinnacleTechCertificate}#
+  useMountedAppSettings: #{useMountedAppSettings}#  
+
+################## Global Values ###########################
+apptype: #{apptype}#
+appname: #{appname}#
+buildname: #{buildname}#
+namespace: #{namespace}#
+
+################ Router Configuration #######################
+router:
+  enableRouter: #{enableRouter}#
+  apolloGraphRef: #{apolloGraphRef}#
+  apolloKey: #{apolloKey}#
+
+
+############### Resource Data #################################
+resourceData:
+  enableResourceData: #{enableResourceData}#
+  dbName: #{dbName}#
+  dbUser: #{dbUser}#
+  dbPassword: #{dbPassword}#
+  dbHost: #{dbHost}#
+
+calcThroughputModelPyms:
+  isCalcThroughputModelPyms: #{isCalcThroughputModelPyms}#
+  SB_CONN_STR: #{SB_CONN_STR}#
+  RESULTS_QUEUE_NAME: #{RESULTS_QUEUE_NAME}#
+  STORAGE_CONNECTION_STRING: #{STORAGE_CONNECTION_STRING}#
+  QUEUE_PROCESSING_MODE: #{QUEUE_PROCESSING_MODE}#
+  REQUEST_TOPIC_NAME: #{REQUEST_TOPIC_NAME}#
+  THROUGHPUT_JOB_SUBSCRIPTION: #{THROUGHPUT_JOB_SUBSCRIPTION}#
+  

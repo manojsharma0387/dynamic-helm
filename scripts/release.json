@@ -1,0 +1,1988 @@
+{
+  "name": "#{appname}#-cd",
+  "artifacts": [
+	  {
+		"type": "Build",
+		"alias": "_Newton Monorepo - CI",
+		"definitionReference": {
+		  "artifactSourceDefinitionUrl": {
+			"id": "https://dev.azure.com/pinnacletechnology/_permalink/_build/index?collectionId=67b4e1c9-22ab-4a75-bba6-f590a75ed945&projectId=bec7d69b-c88f-4003-aa06-9b7e3224a77d&definitionId=166",
+			"name": ""
+		  },
+		  "defaultVersionBranch": {
+			"id": "",
+			"name": ""
+		  },
+		  "defaultVersionSpecific": {
+			"id": "",
+			"name": ""
+		  },
+		  "defaultVersionTags": {
+			"id": "",
+			"name": ""
+		  },
+		  "defaultVersionType": {
+			"id": "latestType",
+			"name": "Latest"
+		  },
+		  "definition": {
+			"id": "166",
+			"name": "Newton Monorepo - CI"
+		  },
+		  "definitions": {
+			"id": "",
+			"name": ""
+		  },
+		  "IsMultiDefinitionType": {
+			"id": "False",
+			"name": "False"
+		  },
+		  "project": {
+			"id": "bec7d69b-c88f-4003-aa06-9b7e3224a77d",
+			"name": "Newton"
+		  },
+		  "repository": {
+			"id": "",
+			"name": ""
+		  }
+		},
+		"isPrimary": true,
+		"isRetained": false
+	  }
+	],
+  "triggers": [
+    {
+      "artifactAlias": "_Newton Monorepo - CI",
+      "triggerConditions": [
+        {
+          "sourceBranch": "main",
+          "tags": [
+					"#{appname}#"
+				  ],
+          "tagFilter": null,
+          "useBuildDefinitionBranch": false,
+          "createReleaseOnBuildTagging": true
+        }
+      ],
+      "triggerType": "artifactSource"
+    }
+  ],
+  "variables": {
+    "appname":  {
+                    "value":  "#{appname}#"
+                },
+    "buildname":  {
+                      "value":  "$(Build.BuildId)-$(Build.BuildNumber)"
+                  },
+    "system.debug":  {
+                         "value":  "true"
+                     }
+	},
+  "releaseNameFormat": "$(Date:yyyy.MM.dd)$(rev:.rr)-#{appname}#",
+  "environments": [
+		{
+			"name":  "dev",
+			"rank":  1,
+			"preDeployApprovals":  {
+									   "approvals":  [
+														 {
+															 "rank":  1,
+															 "isAutomated":  true,
+															 "isNotificationOn":  false,
+															 "id":  618
+														 }
+													 ],
+									   "approvalOptions":  {
+															   "requiredApproverCount":  null,
+															   "releaseCreatorCanBeApprover":  false,
+															   "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+															   "enforceIdentityRevalidation":  false,
+															   "timeoutInMinutes":  0,
+															   "executionOrder":  "beforeGates"
+														   }
+								   },
+			"deployStep":  {
+							   "id":  619
+						   },
+			"postDeployApprovals":  {
+										"approvals":  [
+														  {
+															  "rank":  1,
+															  "isAutomated":  true,
+															  "isNotificationOn":  false,
+															  "id":  620
+														  }
+													  ],
+										"approvalOptions":  {
+																"requiredApproverCount":  null,
+																"releaseCreatorCanBeApprover":  false,
+																"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+																"enforceIdentityRevalidation":  false,
+																"timeoutInMinutes":  0,
+																"executionOrder":  "afterSuccessfulGates"
+															}
+									},
+			"deployPhases":  [
+								 {
+									 "deploymentInput":  {
+															 "parallelExecution":  {
+																					   "parallelExecutionType":  "none"
+																				   },
+															 "agentSpecification":  null,
+															 "skipArtifactsDownload":  false,
+															 "artifactsDownloadInput":  {
+																							"downloadInputs":  [
+																												   {
+																													   "alias":  "_Newton Monorepo - CI",
+																													   "artifactType":  "Build",
+																													   "artifactDownloadMode":  "Skip",
+																													   "artifactItems":  [
+
+																																		 ]
+																												   }
+																											   ]
+																						},
+															 "queueId":  1039,
+															 "demands":  [
+
+																		 ],
+															 "enableAccessToken":  false,
+															 "timeoutInMinutes":  0,
+															 "jobCancelTimeoutInMinutes":  1,
+															 "condition":  "succeeded()",
+															 "overrideInputs":  {
+
+																				}
+														 },
+									 "rank":  1,
+									 "phaseType":  "agentBasedDeployment",
+									 "name":  "Agent job",
+									 "refName":  null,
+									 "workflowTasks":  [
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6e2729df-2211-4a7c-af6f-b726bbca2a3a",
+															   "version":  "3.*",
+															   "name":  "Get Global configurations",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "ConnectedServiceName":  "63403a2e-8f45-4322-bc4c-9118c45ac285",
+																			  "ConfigstoreName":  "appConfig-VantageGlobal-EastUs2",
+																			  "KeyFilter":  "global:aks*",
+																			  "Label":  "",
+																			  "TrimKeyPrefix":  "global:aks:"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "068d5909-43e6-48c5-9e01-7c8a94816220",
+															   "version":  "0.*",
+															   "name":  "Install Helm",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "helmVersion":  "3.4.1",
+																			  "checkLatestHelmVersion":  "false",
+																			  "installKubeCtl":  "true",
+																			  "kubectlVersion":  "1.8.9",
+																			  "checkLatestKubeCtl":  "true"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "cbc316a2-586f-4def-be79-488a1f503564",
+															   "version":  "1.*",
+															   "name":  "Kubernetes Login",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "connectionType":  "Kubernetes Service Connection",
+																			  "kubernetesServiceEndpoint":  "3e15f6a5-2211-4955-a254-7dfc37dd9d83",
+																			  "azureSubscriptionEndpoint":  "",
+																			  "azureResourceGroup":  "",
+																			  "kubernetesCluster":  "",
+																			  "useClusterAdmin":  "false",
+																			  "namespace":  "",
+																			  "command":  "login",
+																			  "useConfigurationFile":  "false",
+																			  "configurationType":  "configuration",
+																			  "configuration":  "",
+																			  "inline":  "",
+																			  "arguments":  "",
+																			  "secretType":  "dockerRegistry",
+																			  "secretArguments":  "",
+																			  "containerRegistryType":  "Azure Container Registry",
+																			  "dockerRegistryEndpoint":  "",
+																			  "azureSubscriptionEndpointForSecrets":  "",
+																			  "azureContainerRegistry":  "",
+																			  "secretName":  "",
+																			  "forceUpdate":  "true",
+																			  "configMapName":  "",
+																			  "forceUpdateConfigMap":  "false",
+																			  "useConfigMapFile":  "false",
+																			  "configMapFile":  "",
+																			  "configMapArguments":  "",
+																			  "versionOrLocation":  "version",
+																			  "versionSpec":  "1.13.2",
+																			  "checkLatest":  "false",
+																			  "specifyLocation":  "",
+																			  "cwd":  "$(System.DefaultWorkingDirectory)",
+																			  "outputFormat":  "json"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+															   "version":  "3.*",
+															   "name":  "Deploy Helm Chart",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "targetType":  "inline",
+																			  "filePath":  "",
+																			  "arguments":  "",
+																			  "script":  "export HELM_EXPERIMENTAL_OCI=1\n\n# Login to ACR   \necho \u0027$(acrpassword)\u0027 | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin\n\n# pull the chart (required before export)\nhelm chart pull $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# export the chart to ./$(projectName)\nhelm chart export $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# helm upgrade with fallback to install\nhelm upgrade $(appname) ./$(appname) \\\n   --namespace $(apptype)-$(appname) \\\n   --create-namespace \\\n   --install \\\n   --wait \\\n   --debug\n   #--set image.repository=$(registryServerName)/$(projectName) \\\n   #--set image.tag=$imgVersion \\\n   #--set replicaCount=$(replicas) \\",
+																			  "workingDirectory":  "",
+																			  "failOnStderr":  "false",
+																			  "bashEnvValue":  ""
+																		  }
+														   }
+													   ]
+								 }
+							 ],
+			"environmentOptions":  {
+									   "emailNotificationType":  "OnlyOnFailure",
+									   "emailRecipients":  "release.environment.owner;release.creator",
+									   "skipArtifactsDownload":  false,
+									   "timeoutInMinutes":  0,
+									   "enableAccessToken":  false,
+									   "publishDeploymentStatus":  true,
+									   "badgeEnabled":  false,
+									   "autoLinkWorkItems":  false,
+									   "pullRequestDeploymentEnabled":  false
+								   },
+			"demands":  [
+
+						],
+			"conditions":  [
+							   {
+								   "name":  "ReleaseStarted",
+								   "conditionType":  "event",
+								   "value":  ""
+							   }
+						   ],
+			"executionPolicy":  {
+									"concurrencyCount":  1,
+									"queueDepthCount":  0
+								},
+			"schedules":  [
+
+						  ],
+			"currentRelease":  {
+								   "id":  6454,
+								   "url":  "https://vsrm.dev.azure.com/pinnacletechnology/bec7d69b-c88f-4003-aa06-9b7e3224a77d/_apis/Release/releases/6454",
+								   "_links":  {
+
+											  }
+							   },
+			"retentionPolicy":  {
+									"daysToKeep":  30,
+									"releasesToKeep":  3,
+									"retainBuild":  true
+								},
+			"processParameters":  {
+
+								  },
+			"properties":  {
+							   "BoardsEnvironmentType":  {
+															 "$type":  "System.String",
+															 "$value":  "unmapped"
+														 },
+							   "LinkBoardsWorkItems":  {
+														   "$type":  "System.String",
+														   "$value":  "False"
+													   }
+						   },
+			"preDeploymentGates":  {
+									   "id":  0,
+									   "gatesOptions":  null,
+									   "gates":  [
+
+												 ]
+								   },
+			"postDeploymentGates":  {
+										"id":  0,
+										"gatesOptions":  null,
+										"gates":  [
+
+												  ]
+									},
+			"environmentTriggers":  [
+
+									],
+			"badgeUrl":  "https://vsrm.dev.azure.com/pinnacletechnology/_apis/public/Release/badge/bec7d69b-c88f-4003-aa06-9b7e3224a77d/40/144"
+		},
+		{
+			"name":  "qa",
+			"rank":  2,
+			"variables":  {
+
+						  },
+			"variableGroups":  [
+
+							   ],
+			"preDeployApprovals":  {
+									   "approvals":  [
+														 {
+															 "rank":  1,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "[pinnacletechnology]\\QA",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																										}
+																						 },
+																			  "id":  "1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			  "uniqueName":  "vstfs:///Framework/IdentityDomain/67b4e1c9-22ab-4a75-bba6-f590a75ed945\\QA",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0",
+																			  "isContainer":  true,
+																			  "descriptor":  "vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																		  },
+															 "id":  621
+														 },
+														 {
+															 "rank":  2,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Manoj Kumar",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																										}
+																						 },
+																			  "id":  "d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			  "uniqueName":  "Manoj.kumar@continuserve.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3",
+																			  "descriptor":  "aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																		  },
+															 "id":  630
+														 },
+														 {
+															 "rank":  3,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Mike Bruce",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																										}
+																						 },
+																			  "id":  "ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			  "uniqueName":  "Mike.Bruce@pinnaclereliability.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi",
+																			  "descriptor":  "aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																		  },
+															 "id":  631
+														 },
+														 {
+															 "rank":  4,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Raji Athuru",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/0086a3c6-c590-6c44-a68a-38b2c853307c",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.MDA4NmEzYzYtYzU5MC03YzQ0LWE2OGEtMzhiMmM4NTMzMDdj"
+																										}
+																						 },
+																			  "id":  "0086a3c6-c590-6c44-a68a-38b2c853307c",
+																			  "uniqueName":  "raji.athuru@pinnaclereliability.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.MDA4NmEzYzYtYzU5MC03YzQ0LWE2OGEtMzhiMmM4NTMzMDdj",
+																			  "descriptor":  "aad.MDA4NmEzYzYtYzU5MC03YzQ0LWE2OGEtMzhiMmM4NTMzMDdj"
+																		  },
+															 "id":  639
+														 },
+														 {
+															 "rank":  5,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "rajeshwaran.v",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/4bf0838c-8568-6d63-9766-30a016b174c1",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.NGJmMDgzOGMtODU2OC03ZDYzLTk3NjYtMzBhMDE2YjE3NGMx"
+																										}
+																						 },
+																			  "id":  "4bf0838c-8568-6d63-9766-30a016b174c1",
+																			  "uniqueName":  "rajeshwaran.v@continuserve.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.NGJmMDgzOGMtODU2OC03ZDYzLTk3NjYtMzBhMDE2YjE3NGMx",
+																			  "descriptor":  "aad.NGJmMDgzOGMtODU2OC03ZDYzLTk3NjYtMzBhMDE2YjE3NGMx"
+																		  },
+															 "id":  640
+														 }
+													 ],
+									   "approvalOptions":  {
+															   "requiredApproverCount":  null,
+															   "releaseCreatorCanBeApprover":  true,
+															   "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+															   "enforceIdentityRevalidation":  false,
+															   "timeoutInMinutes":  0,
+															   "executionOrder":  "beforeGates"
+														   }
+								   },
+			"deployStep":  {
+							   "id":  645
+						   },
+			"postDeployApprovals":  {
+										"approvals":  [
+														  {
+															  "rank":  1,
+															  "isAutomated":  true,
+															  "isNotificationOn":  false,
+															  "id":  646
+														  }
+													  ],
+										"approvalOptions":  {
+																"requiredApproverCount":  null,
+																"releaseCreatorCanBeApprover":  false,
+																"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+																"enforceIdentityRevalidation":  false,
+																"timeoutInMinutes":  0,
+																"executionOrder":  "afterSuccessfulGates"
+															}
+									},
+			"deployPhases":  [
+								 {
+									 "deploymentInput":  {
+															 "parallelExecution":  {
+																					   "parallelExecutionType":  "none"
+																				   },
+															 "agentSpecification":  null,
+															 "skipArtifactsDownload":  false,
+															 "artifactsDownloadInput":  {
+																							"downloadInputs":  [
+																												   {
+																													   "alias":  "_Newton Monorepo - CI",
+																													   "artifactType":  "Build",
+																													   "artifactDownloadMode":  "Skip",
+																													   "artifactItems":  [
+
+																																		 ]
+																												   }
+																											   ]
+																						},
+															 "queueId":  1039,
+															 "demands":  [
+
+																		 ],
+															 "enableAccessToken":  false,
+															 "timeoutInMinutes":  0,
+															 "jobCancelTimeoutInMinutes":  1,
+															 "condition":  "succeeded()",
+															 "overrideInputs":  {
+
+																				}
+														 },
+									 "rank":  1,
+									 "phaseType":  "agentBasedDeployment",
+									 "name":  "Agent job",
+									 "refName":  null,
+									 "workflowTasks":  [
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6e2729df-2211-4a7c-af6f-b726bbca2a3a",
+															   "version":  "3.*",
+															   "name":  "Get Global configurations",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "ConnectedServiceName":  "63403a2e-8f45-4322-bc4c-9118c45ac285",
+																			  "ConfigstoreName":  "appConfig-VantageGlobal-EastUs2",
+																			  "KeyFilter":  "global:aks*",
+																			  "Label":  "",
+																			  "TrimKeyPrefix":  "global:aks:"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "068d5909-43e6-48c5-9e01-7c8a94816220",
+															   "version":  "0.*",
+															   "name":  "Install Helm",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "helmVersion":  "3.4.1",
+																			  "checkLatestHelmVersion":  "false",
+																			  "installKubeCtl":  "true",
+																			  "kubectlVersion":  "1.8.9",
+																			  "checkLatestKubeCtl":  "true"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "cbc316a2-586f-4def-be79-488a1f503564",
+															   "version":  "1.*",
+															   "name":  "Kubernetes Login",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "connectionType":  "Kubernetes Service Connection",
+																			  "kubernetesServiceEndpoint":  "3e15f6a5-2211-4955-a254-7dfc37dd9d83",
+																			  "azureSubscriptionEndpoint":  "",
+																			  "azureResourceGroup":  "",
+																			  "kubernetesCluster":  "",
+																			  "useClusterAdmin":  "false",
+																			  "namespace":  "",
+																			  "command":  "login",
+																			  "useConfigurationFile":  "false",
+																			  "configurationType":  "configuration",
+																			  "configuration":  "",
+																			  "inline":  "",
+																			  "arguments":  "",
+																			  "secretType":  "dockerRegistry",
+																			  "secretArguments":  "",
+																			  "containerRegistryType":  "Azure Container Registry",
+																			  "dockerRegistryEndpoint":  "",
+																			  "azureSubscriptionEndpointForSecrets":  "",
+																			  "azureContainerRegistry":  "",
+																			  "secretName":  "",
+																			  "forceUpdate":  "true",
+																			  "configMapName":  "",
+																			  "forceUpdateConfigMap":  "false",
+																			  "useConfigMapFile":  "false",
+																			  "configMapFile":  "",
+																			  "configMapArguments":  "",
+																			  "versionOrLocation":  "version",
+																			  "versionSpec":  "1.13.2",
+																			  "checkLatest":  "false",
+																			  "specifyLocation":  "",
+																			  "cwd":  "$(System.DefaultWorkingDirectory)",
+																			  "outputFormat":  "json"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+															   "version":  "3.*",
+															   "name":  "Deploy Helm Chart",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "targetType":  "inline",
+																			  "filePath":  "",
+																			  "arguments":  "",
+																			  "script":  "export HELM_EXPERIMENTAL_OCI=1\n\n# Login to ACR   \necho \u0027$(acrpassword)\u0027 | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin\n\n# pull the chart (required before export)\nhelm chart pull $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# exportthe chart to ./$(projectName)\nhelm chart export $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# helm upgrade with fallback to install\nhelm upgrade $(appname) ./$(appname) \\\n   --namespace $(apptype)-$(appname) \\\n   --create-namespace \\\n   --install \\\n   --wait \\\n   --debug\n   #--set image.repository=$(registryServerName)/$(projectName) \\\n   #--set image.tag=$imgVersion \\\n   #--set replicaCount=$(replicas) \\",
+																			  "workingDirectory":  "",
+																			  "failOnStderr":  "false",
+																			  "bashEnvValue":  ""
+																		  }
+														   }
+													   ]
+								 }
+							 ],
+			"environmentOptions":  {
+									   "emailNotificationType":  "OnlyOnFailure",
+									   "emailRecipients":  "release.environment.owner;release.creator",
+									   "skipArtifactsDownload":  false,
+									   "timeoutInMinutes":  0,
+									   "enableAccessToken":  false,
+									   "publishDeploymentStatus":  true,
+									   "badgeEnabled":  false,
+									   "autoLinkWorkItems":  false,
+									   "pullRequestDeploymentEnabled":  false
+								   },
+			"demands":  [
+
+						],
+			"conditions":  [
+							   {
+								   "name":  "dev",
+								   "conditionType":  "environmentState",
+								   "value":  "4"
+							   }
+						   ],
+			"executionPolicy":  {
+									"concurrencyCount":  1,
+									"queueDepthCount":  0
+								},
+			"schedules":  [
+
+						  ],
+			"currentRelease":  {
+								   "id":  0,
+								   "url":  "https://vsrm.dev.azure.com/pinnacletechnology/bec7d69b-c88f-4003-aa06-9b7e3224a77d/_apis/Release/releases/0",
+								   "_links":  {
+
+											  }
+							   },
+			"retentionPolicy":  {
+									"daysToKeep":  30,
+									"releasesToKeep":  3,
+									"retainBuild":  true
+								},
+			"processParameters":  {
+
+								  },
+			"properties":  {
+							   "BoardsEnvironmentType":  {
+															 "$type":  "System.String",
+															 "$value":  "unmapped"
+														 },
+							   "LinkBoardsWorkItems":  {
+														   "$type":  "System.String",
+														   "$value":  "False"
+													   }
+						   },
+			"preDeploymentGates":  {
+									   "id":  0,
+									   "gatesOptions":  null,
+									   "gates":  [
+
+												 ]
+								   },
+			"postDeploymentGates":  {
+										"id":  0,
+										"gatesOptions":  null,
+										"gates":  [
+
+												  ]
+									},
+			"environmentTriggers":  [
+
+									],
+			"badgeUrl":  "https://vsrm.dev.azure.com/pinnacletechnology/_apis/public/Release/badge/bec7d69b-c88f-4003-aa06-9b7e3224a77d/40/145"
+		},
+		{
+			"name":  "pre-prod approvals",
+			"rank":  3,
+			"variables":  {
+
+						  },
+			"variableGroups":  [
+
+							   ],
+			"preDeployApprovals":  {
+									   "approvals":  [
+														 {
+															 "rank":  1,
+															 "isAutomated":  true,
+															 "isNotificationOn":  false,
+															 "id":  622
+														 }
+													 ],
+									   "approvalOptions":  {
+															   "requiredApproverCount":  null,
+															   "releaseCreatorCanBeApprover":  false,
+															   "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+															   "enforceIdentityRevalidation":  false,
+															   "timeoutInMinutes":  0,
+															   "executionOrder":  "beforeGates"
+														   }
+								   },
+			"deployStep":  {
+							   "id":  629
+						   },
+			"postDeployApprovals":  {
+										"approvals":  [
+														  {
+															  "rank":  1,
+															  "isAutomated":  false,
+															  "isNotificationOn":  false,
+															  "approver":  {
+																			   "displayName":  "Raji Athuru",
+																			   "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/0086a3c6-c590-6c44-a68a-38b2c853307c",
+																			   "_links":  {
+																							  "avatar":  {
+																											 "href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.MDA4NmEzYzYtYzU5MC03YzQ0LWE2OGEtMzhiMmM4NTMzMDdj"
+																										 }
+																						  },
+																			   "id":  "0086a3c6-c590-6c44-a68a-38b2c853307c",
+																			   "uniqueName":  "raji.athuru@pinnaclereliability.com",
+																			   "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.MDA4NmEzYzYtYzU5MC03YzQ0LWE2OGEtMzhiMmM4NTMzMDdj",
+																			   "descriptor":  "aad.MDA4NmEzYzYtYzU5MC03YzQ0LWE2OGEtMzhiMmM4NTMzMDdj"
+																		   },
+															  "id":  632
+														  },
+														  {
+															  "rank":  2,
+															  "isAutomated":  false,
+															  "isNotificationOn":  false,
+															  "approver":  {
+																			   "displayName":  "Mike Bruce",
+																			   "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			   "_links":  {
+																							  "avatar":  {
+																											 "href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																										 }
+																						  },
+																			   "id":  "ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			   "uniqueName":  "Mike.Bruce@pinnaclereliability.com",
+																			   "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi",
+																			   "descriptor":  "aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																		   },
+															  "id":  638
+														  },
+														  {
+															  "rank":  3,
+															  "isAutomated":  false,
+															  "isNotificationOn":  false,
+															  "approver":  {
+																			   "displayName":  "Manoj Kumar",
+																			   "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			   "_links":  {
+																							  "avatar":  {
+																											 "href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																										 }
+																						  },
+																			   "id":  "d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			   "uniqueName":  "Manoj.kumar@continuserve.com",
+																			   "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3",
+																			   "descriptor":  "aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																		   },
+															  "id":  641
+														  },
+														  {
+															  "rank":  4,
+															  "isAutomated":  false,
+															  "isNotificationOn":  false,
+															  "approver":  {
+																			   "displayName":  "rajeshwaran.v",
+																			   "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/4bf0838c-8568-6d63-9766-30a016b174c1",
+																			   "_links":  {
+																							  "avatar":  {
+																											 "href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.NGJmMDgzOGMtODU2OC03ZDYzLTk3NjYtMzBhMDE2YjE3NGMx"
+																										 }
+																						  },
+																			   "id":  "4bf0838c-8568-6d63-9766-30a016b174c1",
+																			   "uniqueName":  "rajeshwaran.v@continuserve.com",
+																			   "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.NGJmMDgzOGMtODU2OC03ZDYzLTk3NjYtMzBhMDE2YjE3NGMx",
+																			   "descriptor":  "aad.NGJmMDgzOGMtODU2OC03ZDYzLTk3NjYtMzBhMDE2YjE3NGMx"
+																		   },
+															  "id":  644
+														  },
+														  {
+															  "rank":  5,
+															  "isAutomated":  false,
+															  "isNotificationOn":  false,
+															  "approver":  {
+																			   "displayName":  "[pinnacletechnology]\\QA",
+																			   "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			   "_links":  {
+																							  "avatar":  {
+																											 "href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																										 }
+																						  },
+																			   "id":  "1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			   "uniqueName":  "vstfs:///Framework/IdentityDomain/67b4e1c9-22ab-4a75-bba6-f590a75ed945\\QA",
+																			   "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0",
+																			   "isContainer":  true,
+																			   "descriptor":  "vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																		   },
+															  "id":  647
+														  }
+													  ],
+										"approvalOptions":  {
+																"requiredApproverCount":  null,
+																"releaseCreatorCanBeApprover":  true,
+																"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+																"enforceIdentityRevalidation":  false,
+																"timeoutInMinutes":  0,
+																"executionOrder":  "afterSuccessfulGates"
+															}
+									},
+			"deployPhases":  [
+								 {
+									 "deploymentInput":  {
+															 "parallelExecution":  {
+																					   "parallelExecutionType":  "none"
+																				   },
+															 "agentSpecification":  null,
+															 "skipArtifactsDownload":  false,
+															 "artifactsDownloadInput":  {
+																							"downloadInputs":  [
+																												   {
+																													   "alias":  "_Newton Monorepo - CI",
+																													   "artifactType":  "Build",
+																													   "artifactDownloadMode":  "Skip",
+																													   "artifactItems":  [
+
+																																		 ]
+																												   }
+																											   ]
+																						},
+															 "queueId":  1039,
+															 "demands":  [
+
+																		 ],
+															 "enableAccessToken":  false,
+															 "timeoutInMinutes":  0,
+															 "jobCancelTimeoutInMinutes":  1,
+															 "condition":  "succeeded()",
+															 "overrideInputs":  {
+
+																				}
+														 },
+									 "rank":  1,
+									 "phaseType":  "agentBasedDeployment",
+									 "name":  "Agent job",
+									 "refName":  null,
+									 "workflowTasks":  [
+
+													   ]
+								 }
+							 ],
+			"environmentOptions":  {
+									   "emailNotificationType":  "OnlyOnFailure",
+									   "emailRecipients":  "release.environment.owner;release.creator",
+									   "skipArtifactsDownload":  false,
+									   "timeoutInMinutes":  0,
+									   "enableAccessToken":  false,
+									   "publishDeploymentStatus":  true,
+									   "badgeEnabled":  false,
+									   "autoLinkWorkItems":  false,
+									   "pullRequestDeploymentEnabled":  false
+								   },
+			"demands":  [
+
+						],
+			"conditions":  [
+							   {
+								   "name":  "qa",
+								   "conditionType":  "environmentState",
+								   "value":  "4"
+							   }
+						   ],
+			"executionPolicy":  {
+									"concurrencyCount":  1,
+									"queueDepthCount":  0
+								},
+			"schedules":  [
+
+						  ],
+			"currentRelease":  {
+								   "id":  0,
+								   "url":  "https://vsrm.dev.azure.com/pinnacletechnology/bec7d69b-c88f-4003-aa06-9b7e3224a77d/_apis/Release/releases/0",
+								   "_links":  {
+
+											  }
+							   },
+			"retentionPolicy":  {
+									"daysToKeep":  30,
+									"releasesToKeep":  3,
+									"retainBuild":  true
+								},
+			"processParameters":  {
+
+								  },
+			"properties":  {
+							   "BoardsEnvironmentType":  {
+															 "$type":  "System.String",
+															 "$value":  "testing"
+														 },
+							   "LinkBoardsWorkItems":  {
+														   "$type":  "System.String",
+														   "$value":  "False"
+													   }
+						   },
+			"preDeploymentGates":  {
+									   "id":  0,
+									   "gatesOptions":  null,
+									   "gates":  [
+
+												 ]
+								   },
+			"postDeploymentGates":  {
+										"id":  0,
+										"gatesOptions":  null,
+										"gates":  [
+
+												  ]
+									},
+			"environmentTriggers":  [
+
+									],
+			"badgeUrl":  "https://vsrm.dev.azure.com/pinnacletechnology/_apis/public/Release/badge/bec7d69b-c88f-4003-aa06-9b7e3224a77d/40/146"
+		},
+		{
+			"name":  "prod",
+			"rank":  4,
+			"variables":  {
+
+						  },
+			"variableGroups":  [
+
+							   ],
+			"preDeployApprovals":  {
+									   "approvals":  [
+														 {
+															 "rank":  1,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "[pinnacletechnology]\\QA",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																										}
+																						 },
+																			  "id":  "1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			  "uniqueName":  "vstfs:///Framework/IdentityDomain/67b4e1c9-22ab-4a75-bba6-f590a75ed945\\QA",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0",
+																			  "isContainer":  true,
+																			  "descriptor":  "vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																		  },
+															 "id":  623
+														 },
+														 {
+															 "rank":  2,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Manoj Kumar",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																										}
+																						 },
+																			  "id":  "d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			  "uniqueName":  "Manoj.kumar@continuserve.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3",
+																			  "descriptor":  "aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																		  },
+															 "id":  628
+														 },
+														 {
+															 "rank":  3,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Mike Bruce",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																										}
+																						 },
+																			  "id":  "ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			  "uniqueName":  "Mike.Bruce@pinnaclereliability.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi",
+																			  "descriptor":  "aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																		  },
+															 "id":  633
+														 }
+													 ],
+									   "approvalOptions":  {
+															   "requiredApproverCount":  null,
+															   "releaseCreatorCanBeApprover":  true,
+															   "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+															   "enforceIdentityRevalidation":  false,
+															   "timeoutInMinutes":  0,
+															   "executionOrder":  "beforeGates"
+														   }
+								   },
+			"deployStep":  {
+							   "id":  637
+						   },
+			"postDeployApprovals":  {
+										"approvals":  [
+														  {
+															  "rank":  1,
+															  "isAutomated":  true,
+															  "isNotificationOn":  false,
+															  "id":  642
+														  }
+													  ],
+										"approvalOptions":  {
+																"requiredApproverCount":  null,
+																"releaseCreatorCanBeApprover":  false,
+																"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+																"enforceIdentityRevalidation":  false,
+																"timeoutInMinutes":  0,
+																"executionOrder":  "afterSuccessfulGates"
+															}
+									},
+			"deployPhases":  [
+								 {
+									 "deploymentInput":  {
+															 "parallelExecution":  {
+																					   "parallelExecutionType":  "none"
+																				   },
+															 "agentSpecification":  null,
+															 "skipArtifactsDownload":  false,
+															 "artifactsDownloadInput":  {
+																							"downloadInputs":  [
+																												   {
+																													   "alias":  "_Newton Monorepo - CI",
+																													   "artifactType":  "Build",
+																													   "artifactDownloadMode":  "Skip",
+																													   "artifactItems":  [
+
+																																		 ]
+																												   }
+																											   ]
+																						},
+															 "queueId":  1039,
+															 "demands":  [
+
+																		 ],
+															 "enableAccessToken":  false,
+															 "timeoutInMinutes":  0,
+															 "jobCancelTimeoutInMinutes":  1,
+															 "condition":  "succeeded()",
+															 "overrideInputs":  {
+
+																				}
+														 },
+									 "rank":  1,
+									 "phaseType":  "agentBasedDeployment",
+									 "name":  "Agent job",
+									 "refName":  null,
+									 "workflowTasks":  [
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6e2729df-2211-4a7c-af6f-b726bbca2a3a",
+															   "version":  "3.*",
+															   "name":  "Get Global configurations",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "ConnectedServiceName":  "63403a2e-8f45-4322-bc4c-9118c45ac285",
+																			  "ConfigstoreName":  "appConfig-VantageGlobal-EastUs2",
+																			  "KeyFilter":  "global:aks*",
+																			  "Label":  "",
+																			  "TrimKeyPrefix":  "global:aks:"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "068d5909-43e6-48c5-9e01-7c8a94816220",
+															   "version":  "0.*",
+															   "name":  "Install Helm",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "helmVersion":  "3.4.1",
+																			  "checkLatestHelmVersion":  "false",
+																			  "installKubeCtl":  "true",
+																			  "kubectlVersion":  "1.8.9",
+																			  "checkLatestKubeCtl":  "true"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "cbc316a2-586f-4def-be79-488a1f503564",
+															   "version":  "1.*",
+															   "name":  "Kubernetes Login",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "connectionType":  "Kubernetes Service Connection",
+																			  "kubernetesServiceEndpoint":  "3e15f6a5-2211-4955-a254-7dfc37dd9d83",
+																			  "azureSubscriptionEndpoint":  "",
+																			  "azureResourceGroup":  "",
+																			  "kubernetesCluster":  "",
+																			  "useClusterAdmin":  "false",
+																			  "namespace":  "",
+																			  "command":  "login",
+																			  "useConfigurationFile":  "false",
+																			  "configurationType":  "configuration",
+																			  "configuration":  "",
+																			  "inline":  "",
+																			  "arguments":  "",
+																			  "secretType":  "dockerRegistry",
+																			  "secretArguments":  "",
+																			  "containerRegistryType":  "Azure Container Registry",
+																			  "dockerRegistryEndpoint":  "",
+																			  "azureSubscriptionEndpointForSecrets":  "",
+																			  "azureContainerRegistry":  "",
+																			  "secretName":  "",
+																			  "forceUpdate":  "true",
+																			  "configMapName":  "",
+																			  "forceUpdateConfigMap":  "false",
+																			  "useConfigMapFile":  "false",
+																			  "configMapFile":  "",
+																			  "configMapArguments":  "",
+																			  "versionOrLocation":  "version",
+																			  "versionSpec":  "1.13.2",
+																			  "checkLatest":  "false",
+																			  "specifyLocation":  "",
+																			  "cwd":  "$(System.DefaultWorkingDirectory)",
+																			  "outputFormat":  "json"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+															   "version":  "3.*",
+															   "name":  "Deploy Helm Chart",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "targetType":  "inline",
+																			  "filePath":  "",
+																			  "arguments":  "",
+																			  "script":  "export HELM_EXPERIMENTAL_OCI=1\n\n# Login to ACR   \necho \u0027$(acrpassword)\u0027 | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin\n\n# pull the chart (required before export)\nhelm chart pull $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# exportthe chart to ./$(projectName)\nhelm chart export $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# helm upgrade with fallback to install\nhelm upgrade $(appname) ./$(appname) \\\n   --namespace $(apptype)-$(appname) \\\n   --create-namespace \\\n   --install \\\n   --wait \\\n   --debug\n   #--set image.repository=$(registryServerName)/$(projectName) \\\n   #--set image.tag=$imgVersion \\\n   #--set replicaCount=$(replicas) \\",
+																			  "workingDirectory":  "",
+																			  "failOnStderr":  "false",
+																			  "bashEnvValue":  ""
+																		  }
+														   }
+													   ]
+								 }
+							 ],
+			"environmentOptions":  {
+									   "emailNotificationType":  "OnlyOnFailure",
+									   "emailRecipients":  "release.environment.owner;release.creator",
+									   "skipArtifactsDownload":  false,
+									   "timeoutInMinutes":  0,
+									   "enableAccessToken":  false,
+									   "publishDeploymentStatus":  true,
+									   "badgeEnabled":  false,
+									   "autoLinkWorkItems":  false,
+									   "pullRequestDeploymentEnabled":  false
+								   },
+			"demands":  [
+
+						],
+			"conditions":  [
+							   {
+								   "name":  "pre-prod approvals",
+								   "conditionType":  "environmentState",
+								   "value":  "4"
+							   }
+						   ],
+			"executionPolicy":  {
+									"concurrencyCount":  1,
+									"queueDepthCount":  0
+								},
+			"schedules":  [
+
+						  ],
+			"currentRelease":  {
+								   "id":  0,
+								   "url":  "https://vsrm.dev.azure.com/pinnacletechnology/bec7d69b-c88f-4003-aa06-9b7e3224a77d/_apis/Release/releases/0",
+								   "_links":  {
+
+											  }
+							   },
+			"retentionPolicy":  {
+									"daysToKeep":  30,
+									"releasesToKeep":  3,
+									"retainBuild":  true
+								},
+			"processParameters":  {
+
+								  },
+			"properties":  {
+							   "BoardsEnvironmentType":  {
+															 "$type":  "System.String",
+															 "$value":  "production"
+														 },
+							   "LinkBoardsWorkItems":  {
+														   "$type":  "System.String",
+														   "$value":  "False"
+													   }
+						   },
+			"preDeploymentGates":  {
+									   "id":  0,
+									   "gatesOptions":  null,
+									   "gates":  [
+
+												 ]
+								   },
+			"postDeploymentGates":  {
+										"id":  0,
+										"gatesOptions":  null,
+										"gates":  [
+
+												  ]
+									},
+			"environmentTriggers":  [
+
+									],
+			"badgeUrl":  "https://vsrm.dev.azure.com/pinnacletechnology/_apis/public/Release/badge/bec7d69b-c88f-4003-aa06-9b7e3224a77d/40/147"
+		},
+		{
+			"name":  "prod-central",
+			"rank":  5,
+			"variables":  {
+
+						  },
+			"variableGroups":  [
+
+							   ],
+			"preDeployApprovals":  {
+									   "approvals":  [
+														 {
+															 "rank":  1,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "[pinnacletechnology]\\QA",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																										}
+																						 },
+																			  "id":  "1a1ecc1c-75d3-4bca-b6da-269587599c68",
+																			  "uniqueName":  "vstfs:///Framework/IdentityDomain/67b4e1c9-22ab-4a75-bba6-f590a75ed945\\QA",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0",
+																			  "isContainer":  true,
+																			  "descriptor":  "vssgp.Uy0xLTktMTU1MTM3NDI0NS0zMzg3MDEyMTk5LTI4NzExNjIxODYtMzE0ODI4MTIzMi0yODA4MDExMDc3LTEtNzkyMTczNjMyLTE1OTgxMTU0MDItMjM4NDk3NzAwNS0xNTQzNTg0MzA0"
+																		  },
+															 "id":  624
+														 },
+														 {
+															 "rank":  2,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Manoj Kumar",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																										}
+																						 },
+																			  "id":  "d9e5fbbb-77de-66d1-8164-4939925734a7",
+																			  "uniqueName":  "Manoj.kumar@continuserve.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3",
+																			  "descriptor":  "aad.ZDllNWZiYmItNzdkZS03NmQxLTgxNjQtNDkzOTkyNTczNGE3"
+																		  },
+															 "id":  627
+														 },
+														 {
+															 "rank":  3,
+															 "isAutomated":  false,
+															 "isNotificationOn":  false,
+															 "approver":  {
+																			  "displayName":  "Mike Bruce",
+																			  "url":  "https://spsprodcus2.vssps.visualstudio.com/A4b39ccec-7aa4-498f-92d1-7ba3b32091d7/_apis/Identities/ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			  "_links":  {
+																							 "avatar":  {
+																											"href":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																										}
+																						 },
+																			  "id":  "ca0e3413-1f2a-6a83-9020-e8ece5b9a8bb",
+																			  "uniqueName":  "Mike.Bruce@pinnaclereliability.com",
+																			  "imageUrl":  "https://dev.azure.com/pinnacletechnology/_apis/GraphProfile/MemberAvatars/aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi",
+																			  "descriptor":  "aad.Y2EwZTM0MTMtMWYyYS03YTgzLTkwMjAtZThlY2U1YjlhOGJi"
+																		  },
+															 "id":  634
+														 }
+													 ],
+									   "approvalOptions":  {
+															   "requiredApproverCount":  null,
+															   "releaseCreatorCanBeApprover":  true,
+															   "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+															   "enforceIdentityRevalidation":  false,
+															   "timeoutInMinutes":  0,
+															   "executionOrder":  "beforeGates"
+														   }
+								   },
+			"deployStep":  {
+							   "id":  636
+						   },
+			"postDeployApprovals":  {
+										"approvals":  [
+														  {
+															  "rank":  1,
+															  "isAutomated":  true,
+															  "isNotificationOn":  false,
+															  "id":  643
+														  }
+													  ],
+										"approvalOptions":  {
+																"requiredApproverCount":  null,
+																"releaseCreatorCanBeApprover":  false,
+																"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+																"enforceIdentityRevalidation":  false,
+																"timeoutInMinutes":  0,
+																"executionOrder":  "afterSuccessfulGates"
+															}
+									},
+			"deployPhases":  [
+								 {
+									 "deploymentInput":  {
+															 "parallelExecution":  {
+																					   "parallelExecutionType":  "none"
+																				   },
+															 "agentSpecification":  null,
+															 "skipArtifactsDownload":  false,
+															 "artifactsDownloadInput":  {
+																							"downloadInputs":  [
+																												   {
+																													   "alias":  "_Newton Monorepo - CI",
+																													   "artifactType":  "Build",
+																													   "artifactDownloadMode":  "Skip",
+																													   "artifactItems":  [
+
+																																		 ]
+																												   }
+																											   ]
+																						},
+															 "queueId":  1039,
+															 "demands":  [
+
+																		 ],
+															 "enableAccessToken":  false,
+															 "timeoutInMinutes":  0,
+															 "jobCancelTimeoutInMinutes":  1,
+															 "condition":  "succeeded()",
+															 "overrideInputs":  {
+
+																				}
+														 },
+									 "rank":  1,
+									 "phaseType":  "agentBasedDeployment",
+									 "name":  "Agent job",
+									 "refName":  null,
+									 "workflowTasks":  [
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6e2729df-2211-4a7c-af6f-b726bbca2a3a",
+															   "version":  "3.*",
+															   "name":  "Get Global configurations",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "ConnectedServiceName":  "63403a2e-8f45-4322-bc4c-9118c45ac285",
+																			  "ConfigstoreName":  "appConfig-VantageGlobal-EastUs2",
+																			  "KeyFilter":  "global:aks*",
+																			  "Label":  "",
+																			  "TrimKeyPrefix":  "global:aks:"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "068d5909-43e6-48c5-9e01-7c8a94816220",
+															   "version":  "0.*",
+															   "name":  "Install Helm",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "helmVersion":  "3.4.1",
+																			  "checkLatestHelmVersion":  "false",
+																			  "installKubeCtl":  "true",
+																			  "kubectlVersion":  "1.8.9",
+																			  "checkLatestKubeCtl":  "true"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "cbc316a2-586f-4def-be79-488a1f503564",
+															   "version":  "1.*",
+															   "name":  "Kubernetes Login",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "connectionType":  "Kubernetes Service Connection",
+																			  "kubernetesServiceEndpoint":  "3e15f6a5-2211-4955-a254-7dfc37dd9d83",
+																			  "azureSubscriptionEndpoint":  "",
+																			  "azureResourceGroup":  "",
+																			  "kubernetesCluster":  "",
+																			  "useClusterAdmin":  "false",
+																			  "namespace":  "",
+																			  "command":  "login",
+																			  "useConfigurationFile":  "false",
+																			  "configurationType":  "configuration",
+																			  "configuration":  "",
+																			  "inline":  "",
+																			  "arguments":  "",
+																			  "secretType":  "dockerRegistry",
+																			  "secretArguments":  "",
+																			  "containerRegistryType":  "Azure Container Registry",
+																			  "dockerRegistryEndpoint":  "",
+																			  "azureSubscriptionEndpointForSecrets":  "",
+																			  "azureContainerRegistry":  "",
+																			  "secretName":  "",
+																			  "forceUpdate":  "true",
+																			  "configMapName":  "",
+																			  "forceUpdateConfigMap":  "false",
+																			  "useConfigMapFile":  "false",
+																			  "configMapFile":  "",
+																			  "configMapArguments":  "",
+																			  "versionOrLocation":  "version",
+																			  "versionSpec":  "1.13.2",
+																			  "checkLatest":  "false",
+																			  "specifyLocation":  "",
+																			  "cwd":  "$(System.DefaultWorkingDirectory)",
+																			  "outputFormat":  "json"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+															   "version":  "3.*",
+															   "name":  "Deploy Helm Chart",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "targetType":  "inline",
+																			  "filePath":  "",
+																			  "arguments":  "",
+																			  "script":  "export HELM_EXPERIMENTAL_OCI=1\n\n# Login to ACR   \necho \u0027$(acrpassword)\u0027 | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin\n\n# pull the chart (required before export)\nhelm chart pull $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# exportthe chart to ./$(projectName)\nhelm chart export $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# helm upgrade with fallback to install\nhelm upgrade $(appname) ./$(appname) \\\n   --namespace $(apptype)-$(appname) \\\n   --create-namespace \\\n   --install \\\n   --wait \\\n   --debug\n   #--set image.repository=$(registryServerName)/$(projectName) \\\n   #--set image.tag=$imgVersion \\\n   #--set replicaCount=$(replicas) \\",
+																			  "workingDirectory":  "",
+																			  "failOnStderr":  "false",
+																			  "bashEnvValue":  ""
+																		  }
+														   }
+													   ]
+								 }
+							 ],
+			"environmentOptions":  {
+									   "emailNotificationType":  "OnlyOnFailure",
+									   "emailRecipients":  "release.environment.owner;release.creator",
+									   "skipArtifactsDownload":  false,
+									   "timeoutInMinutes":  0,
+									   "enableAccessToken":  false,
+									   "publishDeploymentStatus":  true,
+									   "badgeEnabled":  false,
+									   "autoLinkWorkItems":  false,
+									   "pullRequestDeploymentEnabled":  false
+								   },
+			"demands":  [
+
+						],
+			"conditions":  [
+							   {
+								   "name":  "pre-prod approvals",
+								   "conditionType":  "environmentState",
+								   "value":  "4"
+							   }
+						   ],
+			"executionPolicy":  {
+									"concurrencyCount":  1,
+									"queueDepthCount":  0
+								},
+			"schedules":  [
+
+						  ],
+			"currentRelease":  {
+								   "id":  0,
+								   "url":  "https://vsrm.dev.azure.com/pinnacletechnology/bec7d69b-c88f-4003-aa06-9b7e3224a77d/_apis/Release/releases/0",
+								   "_links":  {
+
+											  }
+							   },
+			"retentionPolicy":  {
+									"daysToKeep":  30,
+									"releasesToKeep":  3,
+									"retainBuild":  true
+								},
+			"processParameters":  {
+
+								  },
+			"properties":  {
+							   "BoardsEnvironmentType":  {
+															 "$type":  "System.String",
+															 "$value":  "production"
+														 },
+							   "LinkBoardsWorkItems":  {
+														   "$type":  "System.String",
+														   "$value":  "False"
+													   }
+						   },
+			"preDeploymentGates":  {
+									   "id":  0,
+									   "gatesOptions":  null,
+									   "gates":  [
+
+												 ]
+								   },
+			"postDeploymentGates":  {
+										"id":  0,
+										"gatesOptions":  null,
+										"gates":  [
+
+												  ]
+									},
+			"environmentTriggers":  [
+
+									],
+			"badgeUrl":  "https://vsrm.dev.azure.com/pinnacletechnology/_apis/public/Release/badge/bec7d69b-c88f-4003-aa06-9b7e3224a77d/40/148"
+		},
+		{
+			"name":  "automation",
+			"rank":  6,
+			"variables":  {
+
+						  },
+			"variableGroups":  [
+
+							   ],
+			"preDeployApprovals":  {
+									   "approvals":  [
+														 {
+															 "rank":  1,
+															 "isAutomated":  true,
+															 "isNotificationOn":  false,
+															 "id":  625
+														 }
+													 ],
+									   "approvalOptions":  {
+															   "requiredApproverCount":  null,
+															   "releaseCreatorCanBeApprover":  false,
+															   "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+															   "enforceIdentityRevalidation":  false,
+															   "timeoutInMinutes":  0,
+															   "executionOrder":  "beforeGates"
+														   }
+								   },
+			"deployStep":  {
+							   "id":  626
+						   },
+			"postDeployApprovals":  {
+										"approvals":  [
+														  {
+															  "rank":  1,
+															  "isAutomated":  true,
+															  "isNotificationOn":  false,
+															  "id":  635
+														  }
+													  ],
+										"approvalOptions":  {
+																"requiredApproverCount":  null,
+																"releaseCreatorCanBeApprover":  false,
+																"autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped":  false,
+																"enforceIdentityRevalidation":  false,
+																"timeoutInMinutes":  0,
+																"executionOrder":  "afterSuccessfulGates"
+															}
+									},
+			"deployPhases":  [
+								 {
+									 "deploymentInput":  {
+															 "parallelExecution":  {
+																					   "parallelExecutionType":  "none"
+																				   },
+															 "agentSpecification":  null,
+															 "skipArtifactsDownload":  false,
+															 "artifactsDownloadInput":  {
+																							"downloadInputs":  [
+																												   {
+																													   "alias":  "_Newton Monorepo - CI",
+																													   "artifactType":  "Build",
+																													   "artifactDownloadMode":  "Skip",
+																													   "artifactItems":  [
+
+																																		 ]
+																												   }
+																											   ]
+																						},
+															 "queueId":  1039,
+															 "demands":  [
+
+																		 ],
+															 "enableAccessToken":  false,
+															 "timeoutInMinutes":  0,
+															 "jobCancelTimeoutInMinutes":  1,
+															 "condition":  "succeeded()",
+															 "overrideInputs":  {
+
+																				}
+														 },
+									 "rank":  1,
+									 "phaseType":  "agentBasedDeployment",
+									 "name":  "Agent job",
+									 "refName":  null,
+									 "workflowTasks":  [
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6e2729df-2211-4a7c-af6f-b726bbca2a3a",
+															   "version":  "3.*",
+															   "name":  "Get Global configurations",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "ConnectedServiceName":  "63403a2e-8f45-4322-bc4c-9118c45ac285",
+																			  "ConfigstoreName":  "appConfig-VantageGlobal-EastUs2",
+																			  "KeyFilter":  "global:aks*",
+																			  "Label":  "",
+																			  "TrimKeyPrefix":  "global:aks:"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "068d5909-43e6-48c5-9e01-7c8a94816220",
+															   "version":  "0.*",
+															   "name":  "Install Helm",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "helmVersion":  "3.4.1",
+																			  "checkLatestHelmVersion":  "false",
+																			  "installKubeCtl":  "true",
+																			  "kubectlVersion":  "1.8.9",
+																			  "checkLatestKubeCtl":  "true"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "cbc316a2-586f-4def-be79-488a1f503564",
+															   "version":  "1.*",
+															   "name":  "Kubernetes Login",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "connectionType":  "Kubernetes Service Connection",
+																			  "kubernetesServiceEndpoint":  "3e15f6a5-2211-4955-a254-7dfc37dd9d83",
+																			  "azureSubscriptionEndpoint":  "",
+																			  "azureResourceGroup":  "",
+																			  "kubernetesCluster":  "",
+																			  "useClusterAdmin":  "false",
+																			  "namespace":  "",
+																			  "command":  "login",
+																			  "useConfigurationFile":  "false",
+																			  "configurationType":  "configuration",
+																			  "configuration":  "",
+																			  "inline":  "",
+																			  "arguments":  "",
+																			  "secretType":  "dockerRegistry",
+																			  "secretArguments":  "",
+																			  "containerRegistryType":  "Azure Container Registry",
+																			  "dockerRegistryEndpoint":  "",
+																			  "azureSubscriptionEndpointForSecrets":  "",
+																			  "azureContainerRegistry":  "",
+																			  "secretName":  "",
+																			  "forceUpdate":  "true",
+																			  "configMapName":  "",
+																			  "forceUpdateConfigMap":  "false",
+																			  "useConfigMapFile":  "false",
+																			  "configMapFile":  "",
+																			  "configMapArguments":  "",
+																			  "versionOrLocation":  "version",
+																			  "versionSpec":  "1.13.2",
+																			  "checkLatest":  "false",
+																			  "specifyLocation":  "",
+																			  "cwd":  "$(System.DefaultWorkingDirectory)",
+																			  "outputFormat":  "json"
+																		  }
+														   },
+														   {
+															   "environment":  {
+
+																			   },
+															   "taskId":  "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+															   "version":  "3.*",
+															   "name":  "Deploy Helm Chart",
+															   "refName":  "",
+															   "enabled":  true,
+															   "alwaysRun":  false,
+															   "continueOnError":  false,
+															   "timeoutInMinutes":  0,
+															   "retryCountOnTaskFailure":  0,
+															   "definitionType":  "task",
+															   "overrideInputs":  {
+
+																				  },
+															   "condition":  "succeeded()",
+															   "inputs":  {
+																			  "targetType":  "inline",
+																			  "filePath":  "",
+																			  "arguments":  "",
+																			  "script":  "export HELM_EXPERIMENTAL_OCI=1\n\n# Login to ACR   \necho \u0027$(acrpassword)\u0027 | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin\n\n# pull the chart (required before export)\nhelm chart pull $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# exportthe chart to ./$(projectName)\nhelm chart export $(acrname).azurecr.io/helm/$(appname):$(buildname)\n\n# helm upgrade with fallback to install\nhelm upgrade $(appname) ./$(appname) \\\n   --namespace $(apptype)-$(appname) \\\n   --create-namespace \\\n   --install \\\n   --wait \\\n   --debug\n   #--set image.repository=$(registryServerName)/$(projectName) \\\n   #--set image.tag=$imgVersion \\\n   #--set replicaCount=$(replicas) \\",
+																			  "workingDirectory":  "",
+																			  "failOnStderr":  "false",
+																			  "bashEnvValue":  ""
+																		  }
+														   }
+													   ]
+								 }
+							 ],
+			"environmentOptions":  {
+									   "emailNotificationType":  "OnlyOnFailure",
+									   "emailRecipients":  "release.environment.owner;release.creator",
+									   "skipArtifactsDownload":  false,
+									   "timeoutInMinutes":  0,
+									   "enableAccessToken":  false,
+									   "publishDeploymentStatus":  true,
+									   "badgeEnabled":  false,
+									   "autoLinkWorkItems":  false,
+									   "pullRequestDeploymentEnabled":  false
+								   },
+			"demands":  [
+
+						],
+			"conditions":  [
+							   {
+								   "name":  "ReleaseStarted",
+								   "conditionType":  "event",
+								   "value":  ""
+							   }
+						   ],
+			"executionPolicy":  {
+									"concurrencyCount":  1,
+									"queueDepthCount":  0
+								},
+			"schedules":  [
+
+						  ],
+			"currentRelease":  {
+								   "id":  0,
+								   "url":  "https://vsrm.dev.azure.com/pinnacletechnology/bec7d69b-c88f-4003-aa06-9b7e3224a77d/_apis/Release/releases/0",
+								   "_links":  {
+
+											  }
+							   },
+			"retentionPolicy":  {
+									"daysToKeep":  30,
+									"releasesToKeep":  3,
+									"retainBuild":  true
+								},
+			"processParameters":  {
+
+								  },
+			"properties":  {
+							   "BoardsEnvironmentType":  {
+															 "$type":  "System.String",
+															 "$value":  "production"
+														 },
+							   "LinkBoardsWorkItems":  {
+														   "$type":  "System.String",
+														   "$value":  "False"
+													   }
+						   },
+			"preDeploymentGates":  {
+									   "id":  0,
+									   "gatesOptions":  null,
+									   "gates":  [
+
+												 ]
+								   },
+			"postDeploymentGates":  {
+										"id":  0,
+										"gatesOptions":  null,
+										"gates":  [
+
+												  ]
+									},
+			"environmentTriggers":  [
+
+									],
+			"badgeUrl":  "https://vsrm.dev.azure.com/pinnacletechnology/_apis/public/Release/badge/bec7d69b-c88f-4003-aa06-9b7e3224a77d/40/149"
+		}
+	]
+}

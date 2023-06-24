@@ -1,0 +1,46 @@
+{{ if .Values.ingress.enableIngress }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-{{ .Values.appname }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    {{ if .Values.configMap.enableMFE }}
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: pinnacletech-com
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    {{ end }}  
+    {{ if or (.Values.configMap.enableMS) (.Values.configMap.usePinnacleTechCertificate) }}
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: pinnacletech-io
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    {{ end }}
+    cert-manager.io/cluster-issuer: acme-cluster-issuer
+    {{ if .Values.router.enableRouter }}
+    appgw.ingress.kubernetes.io/health-probe-status-codes: "200-599"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: pinnacletech-io
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    {{ end }}
+    {{ if .Values.resourceData.enableResourceData }}
+    appgw.ingress.kubernetes.io/health-probe-status-codes: "200-599"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: pinnacletech-io
+    service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"    
+    {{ end }}    
+  labels:
+    name: ingress-{{ .Values.appname }}
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.hostName }}
+  rules:
+  - host: {{ .Values.ingress.hostName }}
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: svc-lb-{{ .Values.appname }}
+            port: 
+              number: 80
+{{ end }}              

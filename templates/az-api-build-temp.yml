@@ -1,0 +1,582 @@
+stages:
+- stage: Build_Application
+  displayName: Build_Application
+  jobs:
+  - job: Build_Application
+    variables:
+      - name: buildname
+        value: "$(Build.BuildId)-$(Build.BuildNumber)"
+      - name: buildid
+        value: "$(Build.BuildId)"    
+      - name: app_configuration_name
+        value: "appConfig-VantageGlobal-EastUs2"
+      - name: global_config_keyfilter
+        value: "global:aks*"
+      - name: global_trim_key_prefix
+        value: "global:aks:"
+      - name: CI
+        value: 'true'
+      - name:  NX_BRANCH
+        ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            value: $(System.PullRequest.PullRequestNumber)
+        ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+            value: $(Build.SourceBranchName)
+      - name: TARGET_BRANCH
+        ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            value: $[replace(variables['System.PullRequest.TargetBranch'],'refs/heads/','origin/')]
+      - name: BASE_SHA
+        ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            value: $(git merge-base $(TARGET_BRANCH) HEAD)
+        ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+            value:  $(git rev-parse HEAD~1)
+      - name: HEAD_SHA
+        value: $(git rev-parse HEAD)      
+
+    pool: selfhosted-agent-ubuntu2004
+    #pool:
+    #  vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+      submodules: true
+    - checkout: release
+
+    - task: SonarSource.sonarcloud.14d9cde6-c1da-4d55-aa01-2965cd301255.SonarCloudPrepare@1
+      displayName: 'Prepare analysis on SonarCloud'
+      inputs:
+        SonarCloud: SonarCloud
+        organization: cboijudgegdokt5r4xrlgf7goha262bohx4ykpvvkyb3hjxtpswq
+        scannerMode: CLI
+        configMode: manual
+        cliProjectKey: 'PinnacleTech_Newton_newton-monorepo'
+        cliProjectName: 'PinnacleTech Newton newton-monorepo'
+        cliProjectVersion: '$(build.buildnumber)'
+        cliSources: src
+      continueOnError: true
+      condition: eq(variables['Build.Reason'],'PullRequest')
+
+    - bash: |
+        poetry --version
+
+        sudo add-apt-repository ppa:deadsnakes/ppa -y
+        sudo apt-get update -y
+        sudo apt list | grep python3.10
+        sudo apt-get install python3.10 -y
+        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 2
+        python3 -V
+      name: 'get_poetry_version'
+
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install_Node.js'
+
+    - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+      displayName: 'Get Global configurations'
+      inputs:
+        azureSubscription: 'spn-app-config-global'
+        ConfigstoreName: '$(app_configuration_name)'
+        KeyFilter: '$(global_config_keyfilter)'
+        TrimKeyPrefix: '$(global_trim_key_prefix)'
+
+    - task: NuGetAuthenticate@1
+      displayName: 'NuGet Authenticate'
+      inputs:
+        nuGetServiceConnections: 'Hangfire Pro package, Telerik NuGet'  
+
+    - powershell: |
+        cd newton-monorepo
+        npm install --legacy-peer-deps
+        
+      name: 'Install_NPM'
+
+    - powershell: |
+        cd newton-monorepo
+        #npx nx affected:apps --base=HEAD~1 --plain | Tee-Object -Variable output
+        npx nx affected:apps --base=$(BASE_SHA) --head=$(HEAD_SHA) --plain | Tee-Object -Variable output
+        write-host "output is: $output"
+
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
+        foreach ($appName in ($output -replace '\s+', ' ').Split()) {
+                Write-Host "this is the app-name: $appName"
+                if($appName.Trim() -eq ""){
+                  Write-Host "App name is blank"
+                } else {
+                  $url="https://dev.azure.com/pinnacletechnology/$(System.TeamProject)/_apis/build/builds/$(build.buildid)/tags/" + $appName + "?api-version=6.0"
+                  Write-Host $url
+                  $token = "Bearer $env:SYSTEM_ACCESSTOKEN"
+                  $result = Invoke-RestMethod -Uri $url -Headers @{ Authorization = $token } -Method Put
+                  write-host "result: $result"
+                }
+        }
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken) 
+      name: 'Set_Build_Tags'
+
+    - powershell: |
+        cd newton-monorepo
+        #npx nx affected:apps --base=HEAD~1 --head=remotes/origin/main --plain | Tee-Object -Variable output
+        write-host "base_sha: $(BASE_SHA)"
+        write-host "head_sha is: $(HEAD_SHA)"
+        npx nx affected --target=build --base=$(BASE_SHA) --head=$(HEAD_SHA) --parallel --max-parallel=3
+      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.PullRequestId'], 'Null'))  
+      name: Build_PR 
+
+    - task: Docker@2
+      displayName: 'Docker_Login'
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+      inputs:
+        containerRegistry: 'vantageacreastus2'
+        command: 'login'
+
+    - powershell: |
+        cd newton-monorepo    
+        #npx nx affected:apps --base=HEAD~1 --plain | Tee-Object -Variable output
+        npx nx affected:apps --base=$(BASE_SHA) --head=$(HEAD_SHA) --plain | Tee-Object -Variable output
+        write-host "output is: $output"
+        $applications = ($output -replace '\s+', ' ').Split()
+        $appNames = @()
+        foreach($application in $applications)
+        {
+          write-host "application name: $application"
+          write-host "$(build.SourcesDirectory)/newton-monorepo/apps"
+          $getProjectType = $application
+          $type = $getProjectType.Split('-')[-1]
+          if("mfe" -eq $type )
+          {
+              $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+              if(test-path $path/Dockerfile)
+              {
+                $envs = @("automation","dev","qa","prod")
+                foreach($env in $envs)
+                {
+                  if($env -eq "prod")
+                  {
+                    $nxRedirectUrl = "https://"+"$application"+"-eus2.pinnacletech.com"		
+                    $NX_AUTH0_CLIENT_ID = "NUkU9AqYtT8QDFkCDyMWQw0omOwLFZOZ"
+                    $NX_AUTH0_DOMAIN = "signin.pinnacleauth.com"
+                    $NX_AUTH0_AUDIENCE = "https://api.pinnacletech.com"
+                    $NX_AUTH0_REDIRECT_URL = "$nxRedirectUrl"					  
+                    $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+                    if(test-path $path/webpack.config.prod.template.js)
+                    {
+                      Copy-Item -Path "$path/webpack.config.prod.template.js" -Destination "$path/webpack.config.prod.js"
+                      (Get-Content $path/webpack.config.prod.js -Raw).replace('#{env}#', '') | Set-Content -Path $path/webpack.config.prod.js
+                      Get-Content $path/webpack.config.prod.js					  
+                    }
+                    if(test-path $path/.env.template)
+                    {
+                      Copy-Item -Path "$path/.env.template" -Destination "$path/.env"
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_CLIENT_ID}#', $NX_AUTH0_CLIENT_ID) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_DOMAIN}#', $NX_AUTH0_DOMAIN) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_AUDIENCE}#', $NX_AUTH0_AUDIENCE) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_REDIRECT_URL}#', $NX_AUTH0_REDIRECT_URL) | Set-Content -Path $path/.env
+                      Get-Content $path/.env 					  
+                    }                  
+                  }
+                  elseif($env -eq "qa")
+                  {
+                    $envVal = "$env"+"-"
+                    $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+                    $nxRedirectUrl = "https://"+"$envVal"+"$application"+"-eus2.pinnacletech.com"		
+                    $NX_AUTH0_CLIENT_ID = "xzzDuQodfwYlb892mICBJMJ3OwSDenC2"
+                    $NX_AUTH0_DOMAIN = "qa-signin.pinnacleauth.com"
+                    $NX_AUTH0_AUDIENCE = "https://api.pinnacletech.com"
+                    $NX_AUTH0_REDIRECT_URL = "$nxRedirectUrl"
+                    if(test-path $path/webpack.config.prod.template.js)
+                    {
+                      Copy-Item -Path "$path/webpack.config.prod.template.js" -Destination "$path/webpack.config.prod.js"
+                      (Get-Content $path/webpack.config.prod.js -Raw).replace('#{env}#', $envVal) | Set-Content -Path $path/webpack.config.prod.js
+                      Get-Content $path/webpack.config.prod.js					  
+                    }
+                    if(test-path $path/.env.template)
+                    {
+                      Copy-Item -Path "$path/.env.template" -Destination "$path/.env"
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_CLIENT_ID}#', $NX_AUTH0_CLIENT_ID) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_DOMAIN}#', $NX_AUTH0_DOMAIN) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_AUDIENCE}#', $NX_AUTH0_AUDIENCE) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_REDIRECT_URL}#', $NX_AUTH0_REDIRECT_URL) | Set-Content -Path $path/.env
+                      Get-Content $path/.env 					  
+                    } 					
+                  }
+                  elseif($env -eq "automation")
+                  {
+                    $envVal = "$env"+"-"
+                    $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+                    $nxRedirectUrl = "https://"+"$envVal"+"$application"+"-eus2.pinnacletech.com"	
+                    $NX_AUTH0_CLIENT_ID = "xzzDuQodfwYlb892mICBJMJ3OwSDenC2"
+                    $NX_AUTH0_DOMAIN = "qa-signin.pinnacleauth.com"
+                    $NX_AUTH0_AUDIENCE = "https://api.pinnacletech.com"
+                    $NX_AUTH0_REDIRECT_URL = "$nxRedirectUrl"
+                    if(test-path $path/webpack.config.prod.template.js)
+                    {
+                      Copy-Item -Path "$path/webpack.config.prod.template.js" -Destination "$path/webpack.config.prod.js"
+                      (Get-Content $path/webpack.config.prod.js -Raw).replace('#{env}#', $envVal) | Set-Content -Path $path/webpack.config.prod.js
+                      Get-Content $path/webpack.config.prod.js					  
+                    }
+                    if(test-path $path/.env.template)
+                    {
+                      Copy-Item -Path "$path/.env.template" -Destination "$path/.env"
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_CLIENT_ID}#', $NX_AUTH0_CLIENT_ID) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_DOMAIN}#', $NX_AUTH0_DOMAIN) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_AUDIENCE}#', $NX_AUTH0_AUDIENCE) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_REDIRECT_URL}#', $NX_AUTH0_REDIRECT_URL) | Set-Content -Path $path/.env
+                      Get-Content $path/.env 					  
+                    } 					
+                  }                  
+                  else
+                  {
+                    $envVal = "$env"+"-"
+                    $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+                    $nxRedirectUrl = "https://"+"$envVal"+"$application"+"-eus2.pinnacletech.com"
+                    $NX_AUTH0_CLIENT_ID = "6GGCy4ziqFKHmMItPgWosdjzOwi8lf0L"
+                    $NX_AUTH0_DOMAIN = "dev-signin.pinnacleauth.com"
+                    $NX_AUTH0_AUDIENCE = "https://api.pinnacletech.com"
+                    $NX_AUTH0_REDIRECT_URL = "$nxRedirectUrl"
+                    if(test-path $path/webpack.config.prod.template.js)
+                    {
+                      Copy-Item -Path "$path/webpack.config.prod.template.js" -Destination "$path/webpack.config.prod.js"
+                      (Get-Content $path/webpack.config.prod.js -Raw).replace('#{env}#', $envVal) | Set-Content -Path $path/webpack.config.prod.js
+                      Get-Content $path/webpack.config.prod.js					  
+                    }
+                    if(test-path $path/.env.template)
+                    {
+                      Copy-Item -Path "$path/.env.template" -Destination "$path/.env"
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_CLIENT_ID}#', $NX_AUTH0_CLIENT_ID) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_DOMAIN}#', $NX_AUTH0_DOMAIN) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_AUDIENCE}#', $NX_AUTH0_AUDIENCE) | Set-Content -Path $path/.env
+                      (Get-Content $path/.env -Raw).replace('#{NX_AUTH0_REDIRECT_URL}#', $NX_AUTH0_REDIRECT_URL) | Set-Content -Path $path/.env
+                      Get-Content $path/.env 					  
+                    }
+                  }
+                  '##[section]******************************************************************'
+                  '##[section] Application Building $application *******************************'
+                  '##[section]******************************************************************'
+
+                  cd $(build.SourcesDirectory)/newton-monorepo
+                  npx nx build $application 
+
+                  '##[section]******************************************************************'
+                  '##[section] Docker Build and Push *******************************************'
+                  '##[section]******************************************************************'                                                      
+
+                  cd $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application
+                  write-host "Content of: $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application"
+                  ls
+                  write-host "Docker file path: $path"
+                  $acr = "$(acrname).azurecr.io/"+"$application"+":"+"$(buildname)"+"-"+"$env"
+                  write-host "ACR tag: $acr"
+                  docker build -f "$path/Dockerfile" -t $acr .
+                  docker push $acr
+                  $appNames+= $application
+                }				
+              }
+              else
+              {
+                write-host "DockerFile doest not exists"
+              }
+          }
+          elseif("pyms" -eq $type )
+          {
+            $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+            if(test-path $path/Dockerfile)
+            {
+                '##[section]******************************************************************'
+                '##[section] Application Building $application *******************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo
+                npx nx build $application --verbose 
+
+                '##[section]******************************************************************'
+                '##[section] Docker Build and Push *******************************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application
+                write-host "Content of: $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application"
+                ls
+                write-host "Docker file path: $path"
+                $acr = "$(acrname).azurecr.io/"+"$application"+":"+"$(buildname)"
+                write-host "ACR tag: $acr"
+                docker build -f "$path/Dockerfile" -t $acr .
+                docker push $acr
+                $appNames+= $application
+            }
+            else
+            {
+              write-host "DockerFile doest not exists"
+            }
+          }
+          else
+          {
+            $path = "$(build.SourcesDirectory)/newton-monorepo/apps/$application"
+            if(test-path $path/Dockerfile)
+            {
+              if($application -eq "newton-router-ms")
+              {
+                '##[section]******************************************************************'
+                '##[section] Application Building $application *******************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo
+                npx nx build $application 
+
+                '##[section]******************************************************************'
+                '##[section] Docker Build and Push *******************************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo/apps/$application
+                $acr = "$(acrname).azurecr.io/"+"$application"+":"+"$(buildname)"
+                write-host "ACR tag: $acr"
+                docker build -f "$path/Dockerfile" -t $acr .
+                docker push $acr 
+                $appNames+= $application               
+              }
+              elseif($application -eq "newton-resource-data-ms")
+              {
+                '##[section]******************************************************************'
+                '##[section] Application Building $application *******************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo
+                npx nx build $application 
+
+                '##[section]******************************************************************'
+                '##[section] Docker Build and Push *******************************************'
+                '##[section]******************************************************************'
+
+                Copy-Item $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application/assets/package.json -Destination $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application
+                cd $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application
+                $acr = "$(acrname).azurecr.io/"+"$application"+":"+"$(buildname)"
+                write-host "ACR tag: $acr"
+                docker build -f "$path/Dockerfile" -t $acr .
+                docker push $acr 
+                $appNames+= $application
+              }
+              else
+              {
+                '##[section]******************************************************************'
+                '##[section] Application Building $application *******************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo
+                npx nx build $application --verbose 
+
+                '##[section]******************************************************************'
+                '##[section] Docker Build and Push *******************************************'
+                '##[section]******************************************************************'
+
+                cd $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application/net6.0
+                write-host "Content of: $(build.SourcesDirectory)/newton-monorepo/dist/apps/$application/net6.0"
+                ls
+                write-host "Docker file path: $path"
+                $acr = "$(acrname).azurecr.io/"+"$application"+":"+"$(buildname)"
+                write-host "ACR tag: $acr"
+                docker build -f "$path/Dockerfile" -t $acr .
+                docker push $acr
+                $appNames+= $application
+              }
+            }
+            else
+            {
+              write-host "DockerFile doest not exists"
+            }
+          }
+        }
+        $appNamesString = $appNames -join ","
+        Write-Host "##vso[task.setvariable variable=appNames;isOutput=true]$appNamesString"
+        write-host "appNamestring: $appNames"
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))          
+      name: 'Docker_Build_Push'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files to: $(build.artifactstagingdirectory)/newton-monorepo/apps/' 
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/newton-monorepo/dist/apps/'
+        TargetFolder: '$(build.artifactstagingdirectory)/newton-monorepo/apps/'
+        CleanTargetFolder: true
+        OverWrite: true
+      condition: and(succeeded(), eq(variables.appNames, true))
+
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/newton-monorepo/apps'
+        ArtifactName: 'Apps'   
+      condition: and(succeeded(), eq(variables.appNames, true))
+
+  - job: Build_Helm
+    dependsOn: Build_Application
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))  
+    variables:
+      vars: $[ dependencies.Build_Application.outputs['Docker_Build_Push.appNames'] ]
+      buildname: '$(Build.BuildId)-$(Build.BuildNumber)'
+      buildid: '$(Build.BuildId)'
+      app_configuration_name: 'appConfig-VantageGlobal-EastUs2'
+      global_config_keyfilter: 'global:aks*'
+      global_trim_key_prefix: 'global:aks:'
+
+    pool: selfhosted-agent-win2022
+    #pool:
+      #vmImage: windows-latest
+    steps:
+    - checkout: self
+    - checkout: release
+
+    - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+      displayName: 'Get Global configurations'
+      inputs:
+        azureSubscription: 'spn-app-config-global'
+        ConfigstoreName: '$(app_configuration_name)'
+        KeyFilter: '$(global_config_keyfilter)'
+        TrimKeyPrefix: '$(global_trim_key_prefix)'
+
+    - task: HelmInstaller@1
+      displayName: 'Install Helm'
+      inputs:
+        helmVersionToInstall: $(helmVersion)
+
+    #- bash: |
+    #    export HELM_EXPERIMENTAL_OCI=1
+    #    echo '$(acrpassword)' | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin
+    #  name: 'Helm_Login'
+
+    - powershell: |
+        write-host "$vars"
+        $appNamesArr = "$(vars)".Split(',')
+        foreach ($var in $appNamesArr)
+        {
+          Write-Host "$var`r`n"
+        }
+        cd newton-monorepo    
+        foreach($application in $appNamesArr)
+        {
+          write-host "application name: $application"
+          write-host "$(build.SourcesDirectory)\newton-monorepo\apps"
+
+          $path = "$(build.SourcesDirectory)\newton-monorepo\apps\$application"
+          if(test-path $(build.SourcesDirectory)\newton-monorepo\apps\$application\Dockerfile)
+          {
+            '##[section]******************************************************************'
+            '##[section] Token Replace ***************************************************'
+            '##[section]******************************************************************'
+
+            $path = "$(build.SourcesDirectory)\release\helm\app\*"
+            $destinationPath = "$(build.artifactstagingdirectory)\release\des"
+            IF(!(test-path -Path $destinationPath))
+            {
+                New-Item -Path $destinationPath -ItemType directory
+                Copy-Item -Path "$path" -Destination "$destinationPath" -Recurse
+            }
+            ELSE
+            {
+                Get-ChildItem $destinationPath -Recurse | Remove-Item -Force -Recurse
+                Copy-Item -Path "$path" -Destination "$destinationPath" -Recurse
+            }
+
+            $appTemplatePath = "$(build.SourcesDirectory)\newton-monorepo\apps\$application\helm\app"
+            IF(test-path -Path $appTemplatePath)
+            {
+                Copy-Item -Path "$appTemplatePath\*" -Destination "$destinationPath" -Recurse -Force -PassThru
+            }
+
+            $(build.SourcesDirectory)\release\scripts\replace-token.ps1 -path $destinationPath -extensions "*.yaml"
+            $path = "$destinationPath"
+            $extensions = "*.yaml"
+            gci $path -Include $extensions -Recurse -File | ForEach-Object {
+              $FileContents = "$(Get-Content $_.FullName -Raw)"
+
+              if([string]::IsNullOrWhiteSpace($FileContents))
+              {
+                  Write-Host "Skipping empty file for app name token $($_.FullName)"
+                  return
+              }
+
+              $FileContents.replace('#{appname}#', $application) | Set-Content -Path $_.FullName
+            }
+
+            cd "$destinationPath"
+            get-content values.yaml     
+
+            '##[section]******************************************************************'
+            '##[section] Helm HELM_EXPERIMENTAL_OCI = 1 **********************************'
+            '##[section]******************************************************************'
+
+            [System.Environment]::SetEnvironmentVariable('HELM_EXPERIMENTAL_OCI','1')
+
+            '##[section]******************************************************************'
+            '##[section] Helm Login ******************************************************'
+            '##[section]******************************************************************'
+
+            helm registry login $(acrname).azurecr.io --username $(acrusername) --password $(acrpassword)
+
+            '##[section]******************************************************************'
+            '##[section] Helm Lint *******************************************************'
+            '##[section]******************************************************************'
+
+            helm lint .
+
+            '##[section]******************************************************************'
+            '##[section] Helm Package ****************************************************'
+            '##[section]******************************************************************'
+
+            helm package --app-version $(buildname) $destinationPath
+
+            '##[section]******************************************************************'
+            '##[section] Helm Save *******************************************************'
+            '##[section]******************************************************************'
+
+            $acrHelm = "$(acrname).azurecr.io/helm/"+"$application"+":"+"$(buildname)"
+            helm chart save $destinationPath $acrHelm
+
+            '##[section]******************************************************************'
+            '##[section] Helm Push *******************************************************'
+            '##[section]******************************************************************'
+
+            helm chart push $acrHelm
+
+            '##[section]******************************************************************'
+            '##[section] Creating Release Pipeline ***************************************'
+            '##[section]******************************************************************'
+
+            $path = "$(build.SourcesDirectory)\release\scripts\*"
+            $destinationPath = "$(build.artifactstagingdirectory)\release\desRelease"
+            IF(!(test-path -Path $destinationPath))
+            {
+                New-Item -Path $destinationPath -ItemType directory
+                Copy-Item -Path "$path" -Destination "$destinationPath" -Recurse
+            }
+            ELSE
+            {
+                Get-ChildItem $destinationPath -Recurse | Remove-Item -Force -Recurse
+                Copy-Item -Path "$path" -Destination "$destinationPath" -Recurse
+            }
+            $path = "$destinationPath"
+            $extensions = "*.json"
+            gci $path -Include $extensions -Recurse -File | foreach{
+              (Get-Content $_.FullName -Raw).replace('#{appname}#', $application) | Set-Content -Path $_.FullName
+            }
+            cd "$destinationPath"
+            get-content release.json
+            write-host "ProjectName= $(System.TeamProject)  Destination= $destinationPath\release.json Application Name= $application"
+            $(build.SourcesDirectory)\release\scripts\automate-release-pipeline.ps1 -organizationName "pinnacletechnology" -projectName "$(System.TeamProject)" -jsonPath "$destinationPath\release.json" -application "$application"              
+          }
+          else
+          {
+            write-host "DockerFile doest not exists"
+          }            
+        }
+      name: 'Helm_Build_Push'      
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)         
+
+    - task: SonarSource.sonarcloud.ce096e50-6155-4de8-8800-4221aaeed4a1.SonarCloudAnalyze@1
+      displayName: 'Run Code Analysis'
+      continueOnError: true
+      condition: and(succeeded() , eq(variables['Build.Reason'],'PullRequest'))
+
+    - task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
+      displayName: 'Publish Quality Gate Result'
+      continueOnError: true
+      condition: and(succeeded() , eq(variables['Build.Reason'],'PullRequest'))

@@ -1,0 +1,70 @@
+{{- if .Values.scaledJob.enabled -}}
+{{- $name := include "apps.name" . -}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: scaledjob-{{ include "apps.name" . }}
+  {{- include "apps.namespace" . | nindent 2 }}
+spec:
+  triggers:
+  - type: {{ .Values.scaledJob.triggers.type }}
+    metadata:
+    {{- range $key,$value := .Values.scaledJob.triggers.metadata -}}
+      {{ $key | nindent 8 }}: {{ $value | quote }}
+    {{- end }}  
+  jobTargetRef:
+    activeDeadlineSeconds: {{ .Values.scaledJob.activeDeadlineSeconds | default 3600 }} # 4h
+    backOffLimit: {{ .Values.scaledJob.backOffLimit | default 6 }}  # works with newer KEDA versions
+    parallelism:  {{ .Values.scaledJob.parallelism | default 1 }}
+    completions:  {{ .Values.scaledJob.completions | default 1 }}
+    template:
+      spec:
+        restartPolicy: {{ .Values.scaledJob.restartPolicy }}
+        containers:
+        - name: {{ include "apps.name" . }}
+          image: {{ .Values.scaledJob.acr.name | default .Values.global.acr.name }}/{{ include "apps.name" . }}:{{ .Values.scaledJob.acr.tag | default .Values.global.acr.tag }}
+          imagePullPolicy: {{ .Values.scaledJob.acr.pullPolicy | default .Values.global.acr.pullPolicy }}
+          env:
+          {{- range .Values.scaledJob.environmentVariable | default .Values.global.environmentVariable }}
+            - name: {{ .name }}
+              value: {{ .value }}
+          {{- end }}
+
+          {{- range .Values.scaledJob.environmentVariableFrom | default .Values.global.environmentVariableFrom }}
+          envFrom:
+          - {{ .type }}:
+              {{- if eq .type "secretRef" }}
+              name: secret-{{ $name }}
+              {{- end }}
+              {{- if eq .type "configmapRef" }}
+              name: configmap-{{ $name }}
+              {{- end }}
+          {{- end }}
+          {{- with .Values.scaledJob.resources | default .Values.global.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}           
+          {{- end }}  
+        {{- with .Values.imagePullSecrets }}
+        imagePullSecrets:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.scaledJob.nodeSelector | default .Values.global.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.scaledJob.affinity | default .Values.global.affinity }}
+        affinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.scaledJob.tolerations | default .Values.global.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}              
+  pollingInterval: {{ .Values.scaledJob.pollingInterval | default 30 }}
+  successfulJobsHistoryLimit: {{ .Values.scaledJob.successfulJobsHistoryLimit | default 100 }}
+  failedJobsHistoryLimit: {{ .Values.scaledJob.failedJobsHistoryLimit | default 100 }}
+  maxReplicaCount: {{ .Values.scaledJob.maxReplicaCount | default 100 }}
+  minReplicaCount: {{ .Values.scaledJob.minReplicaCount | default 0 }}
+  rollout:
+    strategy: {{ .Values.scaledJob.strategy | quote | default "default" }} # if ScaledJob changes, don't terminate currently running jobs
+{{- end -}}

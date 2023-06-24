@@ -1,0 +1,142 @@
+stages:
+- stage: Build_Newton_UI
+  displayName: Build_Newton_UI
+  jobs:
+  - job: Build_Newton_UI
+    pool:
+        name: selfhosted-agent-ubuntu2004
+    variables:
+        BuildConfiguration: 'Release'
+        appname: 'newton-ui'    
+        buildname: '$(Build.BuildId)-$(Build.BuildNumber)'
+        buildid: '$(Build.BuildId)'
+        app_configuration_name: 'appConfig-VantageGlobal-EastUs2'
+        global_config_keyfilter: 'global:aks*'
+        global_trim_key_prefix: 'global:aks:'            
+
+    steps:
+    - checkout: self
+    - checkout: release
+
+
+    - task: SonarSource.sonarcloud.14d9cde6-c1da-4d55-aa01-2965cd301255.SonarCloudPrepare@1
+      displayName: 'Prepare analysis on SonarCloud'
+      inputs:
+        SonarCloud: SonarCloud
+        organization: cboijudgegdokt5r4xrlgf7goha262bohx4ykpvvkyb3hjxtpswq
+        scannerMode: CLI
+        configMode: manual
+        cliProjectKey: 'pinnacletechnology_Newton'
+        cliProjectName: 'Newton: Main Web app'
+        cliProjectVersion: '$(build.buildnumber)'
+        cliSources: src
+      continueOnError: true
+      condition: eq(variables['Build.Reason'],'PullRequest')
+
+    - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+      displayName: 'Get Global configurations'
+      inputs:
+        azureSubscription: 'spn-app-config-global'
+        ConfigstoreName: '$(app_configuration_name)'
+        KeyFilter: '$(global_config_keyfilter)'
+        TrimKeyPrefix: '$(global_trim_key_prefix)'
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core SDK 6.x'
+      inputs:
+        version: 6.x
+
+    - task: NuGetAuthenticate@0
+      displayName: 'NuGet Authenticate'
+      inputs:
+        nuGetServiceConnections: 'Hangfire Pro package, Telerik NuGet'
+
+    - script: |
+       dotnet restore "UI.csproj" 
+      workingDirectory: $(build.SourcesDirectory)/Newton/src/UI
+      displayName: 'dotnet restore'
+
+    - script: 'dotnet publish "UI.csproj" --configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)/UI'
+      workingDirectory: $(build.SourcesDirectory)/Newton/src/UI
+      displayName: 'dotnet publish'
+
+    - task: Docker@2
+      displayName: buildAndPush
+      inputs:
+        containerRegistry: vantageacreastus2
+        repository: '$(appname)'
+        Dockerfile: $(build.SourcesDirectory)/Newton/src/UI/Dockerfile
+        buildContext: '$(build.artifactstagingdirectory)/UI'
+        tags: |
+         $(Build.BuildId)-$(Build.BuildNumber)
+         latest
+
+    - task: replacetokens@4
+      displayName: 'Replace tokens in **/*.yaml'
+      inputs:
+        rootDirectory: '$(build.SourcesDirectory)/release/helm/UI'
+        targetFiles: '**/*.yaml'
+        tokenPrefix: '#{'
+        tokenSuffix: '}#'
+
+    - task: HelmInstaller@1
+      displayName: 'Install Helm'
+      inputs:
+        helmVersionToInstall: $(helmVersion)
+
+    - bash: |
+        export HELM_EXPERIMENTAL_OCI=1
+        echo '$(acrpassword)' | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin
+      name: 'Helm_Login'
+
+    - powershell: |
+
+        '##[section]******************************************************************'
+        '##[section] Helm HELM_EXPERIMENTAL_OCI = 1 **********************************'
+        '##[section]******************************************************************'
+
+        [System.Environment]::SetEnvironmentVariable('HELM_EXPERIMENTAL_OCI','1')    
+
+        '##[section]******************************************************************'
+        '##[section] Helm Lint *******************************************************'
+        '##[section]******************************************************************'
+        
+        $path = "$(build.SourcesDirectory)/release/helm/UI/"
+        cd $path
+        helm lint .
+
+        '##[section]******************************************************************'
+        '##[section] Helm Package ****************************************************'
+        '##[section]******************************************************************'
+
+        helm package --app-version $(buildname) $path
+
+        '##[section]******************************************************************'
+        '##[section] Helm Save *******************************************************'
+        '##[section]******************************************************************'
+
+        $acrHelm = "$(acrname).azurecr.io/helm/"+"$(appname)"+":"+"$(buildname)"
+        helm chart save $path $acrHelm
+
+        '##[section]******************************************************************'
+        '##[section] Helm Push *******************************************************'
+        '##[section]******************************************************************'
+
+        helm chart push $acrHelm        
+      name: 'Helm_Build_Push'              
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+      inputs:
+        targetPath: '$(build.artifactstagingdirectory)/UI'
+        artifact: newton-ui
+      
+    - task: SonarSource.sonarcloud.ce096e50-6155-4de8-8800-4221aaeed4a1.SonarCloudAnalyze@1
+      displayName: 'Run Code Analysis'
+      continueOnError: true
+      condition: and(succeeded() , eq(variables['Build.Reason'],'PullRequest'))
+
+    - task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
+      displayName: 'Publish Quality Gate Result'
+      continueOnError: true
+      condition: and(succeeded() , eq(variables['Build.Reason'],'PullRequest'))

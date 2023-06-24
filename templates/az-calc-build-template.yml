@@ -1,0 +1,125 @@
+stages:
+- stage: Build_Calculation_Service
+  displayName: Build_Calculation_Service
+  jobs:
+  - job: Build_Calculation_Service
+    pool:
+        name: selfhosted-agent-ubuntu2004
+    variables:
+        BuildConfiguration: 'Release'
+        appname: 'calculationservice'    
+        buildname: '$(Build.BuildId)-$(Build.BuildNumber)'
+        buildid: '$(Build.BuildId)'
+        app_configuration_name: 'appConfig-VantageGlobal-EastUs2'
+        global_config_keyfilter: 'global:aks*'
+        global_trim_key_prefix: 'global:aks:'            
+
+    steps:
+    - checkout: self
+    - checkout: release
+
+    - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+      displayName: 'Get Global configurations'
+      inputs:
+        azureSubscription: 'spn-app-config-global'
+        ConfigstoreName: '$(app_configuration_name)'
+        KeyFilter: '$(global_config_keyfilter)'
+        TrimKeyPrefix: '$(global_trim_key_prefix)'
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core SDK 6.x'
+      inputs:
+        version: 6.x   
+
+    - task: NuGetAuthenticate@0
+      displayName: 'NuGet Authenticate'
+      inputs:
+        nuGetServiceConnections: 'Hangfire Pro package, Telerik NuGet'
+
+    - script: |
+       dotnet restore "CalculationService.csproj" 
+      workingDirectory: $(build.SourcesDirectory)/Newton/src/CalculationService
+      displayName: 'dotnet restore'
+
+    - script: 'dotnet publish "CalculationService.csproj" --configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)/CalculationService'
+      workingDirectory: $(build.SourcesDirectory)/Newton/src/CalculationService
+      displayName: 'dotnet publish'
+
+    - task: Docker@2
+      displayName: buildAndPush
+      inputs:
+        containerRegistry: vantageacreastus2
+        repository: '$(appname)'
+        Dockerfile: $(build.SourcesDirectory)/Newton/src/CalculationService/Dockerfile
+        buildContext: '$(build.artifactstagingdirectory)/CalculationService'
+        tags: |
+         $(Build.BuildId)-$(Build.BuildNumber)
+         latest
+
+    - task: replacetokens@4
+      displayName: 'Replace tokens in **/*.yaml'
+      inputs:
+        rootDirectory: '$(build.SourcesDirectory)/release/helm/CalculationService'
+        targetFiles: '**/*.yaml'
+        tokenPrefix: '#{'
+        tokenSuffix: '}#'
+
+    - task: HelmInstaller@1
+      displayName: 'Install Helm'
+      inputs:
+        helmVersionToInstall: $(helmVersion)
+
+    - bash: |
+        export HELM_EXPERIMENTAL_OCI=1
+        echo '$(acrpassword)' | helm registry login $(acrname).azurecr.io --username $(acrusername) --password-stdin
+      name: 'Helm_Login'
+
+    - powershell: |
+
+        '##[section]******************************************************************'
+        '##[section] Helm HELM_EXPERIMENTAL_OCI = 1 **********************************'
+        '##[section]******************************************************************'
+
+        [System.Environment]::SetEnvironmentVariable('HELM_EXPERIMENTAL_OCI','1')    
+
+        '##[section]******************************************************************'
+        '##[section] Helm Lint *******************************************************'
+        '##[section]******************************************************************'
+        
+        $path = "$(build.SourcesDirectory)/release/helm/CalculationService/"
+        cd $path
+        helm lint .
+
+        '##[section]******************************************************************'
+        '##[section] Helm Package ****************************************************'
+        '##[section]******************************************************************'
+
+        helm package --app-version $(buildname) $path
+
+        '##[section]******************************************************************'
+        '##[section] Helm Save *******************************************************'
+        '##[section]******************************************************************'
+
+        $acrHelm = "$(acrname).azurecr.io/helm/"+"$(appname)"+":"+"$(buildname)"
+        helm chart save $path $acrHelm
+
+        '##[section]******************************************************************'
+        '##[section] Helm Push *******************************************************'
+        '##[section]******************************************************************'
+
+        helm chart push $acrHelm        
+      name: 'Helm_Build_Push'              
+
+    - task: CopyFiles@2
+      displayName: 'Copy Secret file to: $(System.DefaultWorkingDirectory)/zip' 
+      inputs:
+        SourceFolder: '$(build.SourcesDirectory)/Newton/src/CalculationService/deployment/'
+        TargetFolder: '$(System.DefaultWorkingDirectory)/zip'
+        CleanTargetFolder: false
+        OverWrite: true
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/zip'
+        artifact: zip

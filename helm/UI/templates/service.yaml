@@ -1,0 +1,13 @@
+{{ if .Values.service.enableService }}
+apiVersion: v1
+kind: Service
+metadata:
+    name: svc-lb-{{ .Values.appname }}
+    namespace: {{ .Values.namespace }}
+spec:
+    type: ClusterIP
+    ports:
+        - port: 80   
+    selector:
+        app: {{ .Values.appname }}  
+{{ end }}        

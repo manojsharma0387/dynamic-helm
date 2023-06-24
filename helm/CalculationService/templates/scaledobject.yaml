@@ -1,0 +1,20 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Values.appname }}
+  namespace: {{ .Values.namespace }}
+spec:
+  scaleTargetRef:
+    name: {{ .Values.appname }}
+  minReplicaCount: {{ .Values.scaledObject.minReplicaCount }}
+  maxReplicaCount: {{ .Values.scaledObject.maxReplicaCount }}
+  cooldownPeriod: {{ .Values.scaledObject.cooldownPeriod }}
+  pollingInterval: {{ .Values.scaledObject.pollingInterval }}
+  triggers:
+    - type: external
+      metadata:
+        scalerAddress: {{ .Values.scaledObject.scalerAddress }}
+        maxActivitiesPerWorker: "{{ .Values.scaledObject.maxActivitiesPerWorker }}"
+        maxOrchestrationsPerWorker: "{{ .Values.scaledObject.maxOrchestrationsPerWorker }}"
+        taskHubName: {{ .Values.scaledObject.taskHubName }}
+        connection: {{ .Values.scaledObject.connection }}

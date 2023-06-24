@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ .Values.appname }}
+    namespace: {{ .Values.namespace }}
+    labels:
+        app: {{ .Values.appname }}
+spec:
+    replicas: {{ .Values.deployment.replicas }}
+    selector:
+        matchLabels:
+            app: {{ .Values.appname }}
+    template:
+        metadata:
+            labels:
+                app: {{ .Values.appname }}
+        spec:
+            nodeSelector:
+                kubernetes.io/os: linux        
+            containers:
+            - name: {{ .Values.appname }}
+              image: vantageacreastus2.azurecr.io/{{ .Values.appname }}:{{ .Values.buildname }}
+              ports:
+                {{ if .Values.router.enableRouter }}
+                - containerPort: 4000
+                {{ else }}
+                - containerPort: 80
+                {{ end }}  
+              resources:
+                requests:
+                  memory: {{ .Values.deployment.memory }}
+                  cpu: {{ .Values.deployment.cpu }}
+                limits:
+                  memory: {{ .Values.deployment.memory }}
+                  cpu: {{ .Values.deployment.cpu }}                
+              env:
+              - name: "DOTNET_ENVIRONMENT"
+                value: {{ .Values.deployment.dotnetenv }}
+              {{ if .Values.router.enableRouter }}
+              - name: "APOLLO_GRAPH_REF"
+                value: {{ .Values.router.apolloGraphRef }}
+              - name: "APOLLO_KEY"
+                value: {{ .Values.router.apolloKey }}
+              {{ end }}             
+              {{ if .Values.resourceData.enableResourceData }}
+              - name: "DB_NAME"
+                value: {{ .Values.resourceData.dbName }}
+              - name: "DB_USER"
+                value: {{ .Values.resourceData.dbUser }}
+              - name: "DB_PASSWORD"
+                value: {{ .Values.resourceData.dbPassword }}
+              - name: "DB_HOST"
+                value: {{ .Values.resourceData.dbHost }}
+              - name: "MS_PORT"
+                value: "80"
+              {{ end }}
+              {{ if .Values.calcThroughputModelPyms.isCalcThroughputModelPyms }}
+              - name: "SB_CONN_STR"
+                value: {{ .Values.calcThroughputModelPyms.SB_CONN_STR }}
+              - name: "RESULTS_QUEUE_NAME"
+                value: {{ .Values.calcThroughputModelPyms.RESULTS_QUEUE_NAME }}
+              - name: "STORAGE_CONNECTION_STRING"
+                value: {{ .Values.calcThroughputModelPyms.STORAGE_CONNECTION_STRING }}
+              - name: "QUEUE_PROCESSING_MODE"
+                value: {{ .Values.calcThroughputModelPyms.QUEUE_PROCESSING_MODE | quote }}
+              - name: "REQUEST_TOPIC_NAME"
+                value: {{ .Values.calcThroughputModelPyms.REQUEST_TOPIC_NAME }}
+              - name: "THROUGHPUT_JOB_SUBSCRIPTION"
+                value: {{ .Values.calcThroughputModelPyms.THROUGHPUT_JOB_SUBSCRIPTION }}
+              {{ end }}                                
+              volumeMounts:
+              {{ if and (ne .Values.appname "poc-python-app-pyms") (ne .Values.appname "calc-throughput-model-pyms") }}
+              - name: configmap-{{ .Values.appname }}
+                {{ if or (.Values.configMap.enableMS) (.Values.configMap.useMountedAppSettings) }}
+                mountPath: /app/appsettings.json
+                subPath: appsettings.json
+                {{ end }}    
+                {{ if .Values.configMap.enableMFE }}
+                mountPath: /etc/nginx/nginx.conf
+                subPath: nginx.conf
+                {{ end }}               
+                {{ if .Values.resourceData.enableResourceData }}
+                mountPath: /etc/nginx/nginx.conf
+                subPath: nginx.conf                
+                {{ end }}
+                {{ if .Values.router.enableRouter }}
+                mountPath: /dist/config/router.yaml
+                subPath: router.yaml
+                {{ end }}
+              {{ end }}                                             
+            imagePullSecrets:
+                - name: {{ .Values.deployment.deploymentsecret }}           
+            volumes:
+            {{ if and (ne .Values.appname "poc-python-app-pyms") (ne .Values.appname "calc-throughput-model-pyms") }}
+            - name: configmap-{{ .Values.appname }}
+              configMap:
+                name: configmap-{{ .Values.appname }}
+            {{ end }}                                                            
+            nodeSelector:
+              app: {{ .Values.apptype }}
+            tolerations:
+              - key: "app"
+                operator: "Equal"
+                value: "{{ .Values.apptype }}"
+                effect: "NoSchedule"                   

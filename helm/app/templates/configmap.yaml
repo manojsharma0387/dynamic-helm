@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: configmap-{{ .Values.appname }}
+data:
+{{ if .Values.configMap.enableMS }}
+  appsettings.json: |-
+    {
+        "Logging:LogLevel:Default": "Information",
+        "Logging:LogLevel:Microsoft.AspNetCore": "Warning",
+        "AllowedHosts": "*",
+        "Auth0:Domain": "{{ .Values.configMap.auth0Domain }}",
+        "Auth0:Audience": "{{ .Values.configMap.auth0Audience }}",
+        "ApplicationInsights:ConnectionString": "InstrumentationKey=b2f1e91c-fdf9-473f-9202-ff63fc85bc41;IngestionEndpoint=https://eastus-5.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/",
+        "AppConfigConnectionString": "https://appconfig-vantageglobal-eastus2.azconfig.io",
+        "VaultUri": "https://kv-pinnacle-localdev.vault.azure.net/",
+        "RedisConnectionString": "{{ .Values.configMap.redisConnectionString }}",
+        "Kestrel:Certificates:Development:Password": "35e92be9-d9bb-47c7-a157-1c5923d0ab94",
+        "clientID": "{{ .Values.configMap.clientID }}",
+        "DataStoreConfig:ConnectionString": "{{ .Values.configMap.dataStoreConfig }}"        
+    }
+{{ end }}    
+{{ if .Values.configMap.enableMFE }}
+  nginx.conf: |-
+    user  nginx;
+    worker_processes  auto;
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+    events {
+    worker_connections  1024;
+    }
+    http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    '$status $body_bytes_sent "$http_referer" '
+    '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log  /var/log/nginx/access.log  main;
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+    #gzip  on;
+    #include /etc/nginx/conf.d/*.conf;
+    server {
+    listen 80;
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+        try_files $uri $uri/ /index.html;
+        add_header 'Access-Control-Allow-Origin' '*';
+    }
+    location /api {
+        proxy_pass {{ .Values.configMap.routerUrl }};
+    }
+    }
+    }
+{{ end }}      
+{{ if .Values.router.enableRouter }}
+  router.yaml: |-
+    supergraph:
+      listen: 0.0.0.0:4000
+      introspection: true
+
+    cors:
+
+      # Set to true to allow any origin
+      # (Defaults to false)
+      allow_any_origin: false
+
+      # List of accepted origins
+      # (Ignored if allow_any_origin is true)
+      # (Defaults to the Apollo Studio url: `https://studio.apollographql.com`)
+      origins:
+        - http://localhost
+        - https://studio.apollographql.com # Keep this so Apollo Studio can run queries against your router
+      match_origins:
+        - "http://([-a-z0-9]+[.])*pinnacletech[.]com" # any host that uses http and ends with .pinnacletech.com
+        - "https://([-a-z0-9]+[.])*pinnacletech[.]com" # any host that uses https and ends with .pinnacletech.com
+
+    include_subgraph_errors:
+      all: true # Propagate errors from all subgraphs
+
+    headers:
+      # Header rules for all subgraphs
+      all:
+        request:
+          # Propagate matching headers
+          - propagate:
+              named: "authorization"
+
+    telemetry:
+      experimental_logging:
+        format: json # By default it's "pretty" if you are in an interactive shell session
+        display_filename: true # Display filename where the log is coming from. Default: true
+        display_line_number: false # Display line number in the file where the log is coming from. Default: true
+        # If one of these headers matches we will log supergraph and subgraphs requests/responses
+        when_header:
+          - name: user-agent
+            match: .*
+            headers: true
+            body: true
+          
+{{ end }}  

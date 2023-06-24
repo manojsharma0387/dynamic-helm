@@ -1,0 +1,39 @@
+{{- if .Values.job.enabled -}}
+{{- $name := include "selfhostedagents.name" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-{{ include "selfhostedagents.name" . }}
+  {{- include "selfhostedagents.namespace" . | nindent 2 }} 
+spec:
+  activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds | default 300 }}
+  backoffLimit: {{ .Values.job.backoffLimit | default 0 }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 600 }}
+  completionMode: {{ .Values.job.completionMode | default 0 }}
+  completions: {{ .Values.job.completions | default 0 }}
+  manualSelector: {{ .Values.job.manualSelector | default 0 }}
+  parallelism: {{ .Values.job.parallelism | default 0 }} 
+  template:
+    spec:
+      restartPolicy: Never
+      activeDeadlineSeconds: 240
+      containers:
+      - name: {{ include "selfhostedagents.name" . }}
+        image: {{ .Values.acr | default "vantageacreastus2.azurecr.io"}}/{{ include "selfhostedagents.name" . }}:{{ .Values.image.tag | default "latest" }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        {{- range .Values.environmentVariable }}
+          - name: {{ .name }}
+            value: {{ .value }}
+        {{- end }}    
+        {{- range .Values.environmentVariableFrom }}
+        envFrom:
+        - {{ .type }}:
+            {{- if eq .type "secretRef" }}
+            name: secret-{{ $name }}
+            {{- end }}
+            {{- if eq .type "configmapRef" }}
+            name: configmap-{{ $name }}
+            {{- end }}
+        {{- end }}
+{{- end -}}

@@ -1,0 +1,39 @@
+{{- if .Values.job.enabled -}}
+{{- $name := include "apps.name" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-{{ include "apps.name" . }}
+  {{- include "apps.namespace" . | nindent 2 }} 
+spec:
+  activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds | default 300 }}
+  backoffLimit: {{ .Values.job.backoffLimit | default 0 }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 600 }}
+  completionMode: {{ .Values.job.completionMode | default 0 }}
+  completions: {{ .Values.job.completions | default 0 }}
+  manualSelector: {{ .Values.job.manualSelector | default 0 }}
+  parallelism: {{ .Values.job.parallelism | default 0 }} 
+  template:
+    spec:
+      restartPolicy: Never
+      activeDeadlineSeconds: 240
+      containers:
+      - name: {{ include "apps.name" . }}
+        image: {{ .Values.job.acr.name | default .Values.global.acr.name }}/{{ include "apps.name" . }}:{{ .Values.job.acr.tag | default .Values.global.acr.tag }}
+        imagePullPolicy: {{ .Values.job.acr.pullPolicy | default .Values.global.acr.pullPolicy }}
+        env:
+        {{- range .Values.job.environmentVariable | default .Values.global.environmentVariable }}
+          - name: {{ .name }}
+            value: {{ .value }}
+        {{- end }}    
+        {{- range .Values.job.environmentVariableFrom | default .Values.global.environmentVariableFrom }}
+        envFrom:
+        - {{ .type }}:
+            {{- if eq .type "secretRef" }}
+            name: secret-{{ $name }}
+            {{- end }}
+            {{- if eq .type "configmapRef" }}
+            name: configmap-{{ $name }}
+            {{- end }}
+        {{- end }}
+{{- end -}}

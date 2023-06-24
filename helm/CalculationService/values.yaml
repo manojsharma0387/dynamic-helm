@@ -1,0 +1,30 @@
+################## deployment ##############################
+deployment:
+  deploymentsecret: #{deploymentSecret}#
+  requestMemory: #{requestMemory}#
+  requestCpu: #{requestCpu}#
+  limitMemory: #{limitMemory}#
+  limitCpu: #{limitCpu}#  
+  nodeSelector: #{nodeSelector}#
+  configMapName: #{env}#-#{appname}#-configmap
+
+################## secret ##################################
+secret:
+  dockersecret: #{dockersecret}#   
+
+################## Global Values ###########################
+appname: #{appname}#
+buildname: #{buildname}#
+namespace: #{namespace}#
+
+################## Scaled Object ###########################
+scaledObject:
+  minReplicaCount: #{minReplicaCount}#
+  maxReplicaCount: #{maxReplicaCount}#
+  cooldownPeriod: #{cooldownPeriod}#
+  pollingInterval: #{pollingInterval}#
+  scalerAddress: #{scalerAddress}#
+  maxActivitiesPerWorker: #{maxActivitiesPerWorker}#
+  maxOrchestrationsPerWorker: #{maxOrchestrationsPerWorker}#
+  taskHubName: #{taskHubName}#
+  connection: #{connection}#

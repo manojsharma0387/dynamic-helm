@@ -1,0 +1,25 @@
+trigger: none
+
+name: Mongo-Build-$(build.buildid)-$(date:yyyy-MM-dd)$(rev:.rr)
+
+stages:
+- stage: Build_Mongo
+  jobs:
+  - job: Build_Mongo   
+    #pool: selfhosted-agent-ubuntu1804
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: CopyFiles@2
+      displayName: 'Copy Files to: $(build.artifactstagingdirectory)/mongo/'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/mongo-helm'
+        TargetFolder: '$(build.artifactstagingdirectory)/mongo/'
+        CleanTargetFolder: true
+        OverWrite: true
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/mongo'
+        ArtifactName: 'mongo'   

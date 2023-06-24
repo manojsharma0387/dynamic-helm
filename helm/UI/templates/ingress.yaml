@@ -1,0 +1,30 @@
+{{ if .Values.ingress.enableIngress }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-{{ .Values.appname }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: pinnacletech-com
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    appgw.ingress.kubernetes.io/health-probe-status-codes: "200-599"
+    cert-manager.io/cluster-issuer: acme-cluster-issuer  
+  labels:
+    name: ingress-{{ .Values.appname }}
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.hostName }}
+  rules:
+  - host: {{ .Values.ingress.hostName }}
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: svc-lb-{{ .Values.appname }}
+            port: 
+              number: 80
+{{ end }}              

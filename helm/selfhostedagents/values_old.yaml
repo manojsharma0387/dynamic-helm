@@ -1,0 +1,159 @@
+# Default values for selfhostedagents.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+acr: vantageacreastus2.azurecr.io
+env: "dev"
+
+
+# If you do want to specify Environment Values, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'env:'.
+# env:
+#   - name: env1
+#     value: somevalue
+#   - name: env2
+#     value: somevalue
+environmentVariable:
+- name: env1
+  value: value1
+- name: env2
+  value: value2
+
+# If you do want to specify Environment From (Secret or ConfigMap), uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'envFrom:'.
+# envFrom:
+# - type: secretRef | configmapRef
+#   name: 
+#
+environmentVariableFrom:
+- type: secretRef
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets:
+- name: aks-secret
+nameOverride: "app1"
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+# fsGroup: 2000
+
+securityContext: {}
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+#    hosts:
+#      - chart-example.local
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector:
+  app: bwapi
+
+tolerations:
+- key: "app"
+  operator: "Equal"
+  value: "bwapi"
+  effect: "NoSchedule"
+
+affinity: {}
+
+job:
+  enabled: true
+  activeDeadlineSeconds: 300
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  completionMode: 0
+  completions: 0
+  manualSelector: 0
+  parallelism: 0
+  restartPolicy: Never
+
+
+scaledJob:
+  enabled: true
+  activeDeadlineSeconds: 600
+  backOffLimit:
+  restartPolicy:
+  imagePullPolicy:
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  maxReplicaCount: 30
+  minReplicaCount: 0
+  completions: 1
+  parallelism: 1
+  strategy: gradual
+  pollingInterval: 5
+  volumes: []
+  volumeMounts: []
+  triggers:
+    type: azure-pipelines
+    metadata:
+      poolName: "self-hosted-agents-k8s"
+      organizationURLFromEnv: "AZP_URL"
+      personalAccessTokenFromEnv: "AZP_TOKEN"
+
+
+
+
+

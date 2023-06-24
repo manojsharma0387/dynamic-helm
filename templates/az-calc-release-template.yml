@@ -1,0 +1,116 @@
+parameters:
+    appname: ''
+    env: ''
+stages:    
+- stage: ${{ parameters.env }}
+  displayName: ${{ parameters.env }}
+  jobs:
+    - deployment: Deploy_${{ parameters.appname }}  
+      displayName: 'Deploy_${{ parameters.appname }}'
+      variables:
+        buildname: '$(Build.BuildId)-$(Build.BuildNumber)'
+        buildid: '$(Build.BuildId)'
+        appname: ${{ parameters.appname }}
+        env: ${{ parameters.env }}
+        app_configuration_name: 'appConfig-VantageGlobal-EastUs2'
+        global_config_keyfilter: 'global:aks*'
+        global_trim_key_prefix: 'global:aks:' 
+        calculationservice_infra_config_keyfilter: 'calculationservice:infra*'
+        calculationservice_infra_trim_key_prefix: 'calculationservice:infra:'
+        calculationservice_config_keyfilter: 'calculationservice:app*'
+        calculationservice_trim_key_prefix: 'calculationservice:app:'
+      environment: ${{ parameters.env }}
+      pool: selfhosted-agent-win2022
+      strategy:
+        runOnce:
+          deploy:     
+            steps:
+            - checkout: self
+            - checkout: release
+
+            - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+              displayName: 'Get Global configurations'
+              inputs:
+                azureSubscription: 'spn-app-config-global'
+                ConfigstoreName: '$(app_configuration_name)'
+                KeyFilter: '$(global_config_keyfilter)'
+                TrimKeyPrefix: '$(global_trim_key_prefix)'
+
+            - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+              displayName: 'Get Global configurations'
+              inputs:
+                azureSubscription: 'spn-app-config-global'
+                ConfigstoreName: '$(app_configuration_name)'
+                KeyFilter: '$(calculationservice_infra_config_keyfilter)'
+                TrimKeyPrefix: '$(calculationservice_infra_trim_key_prefix)'
+                Label: '${{ parameters.env }}'
+
+            - task: AzureAppConfiguration.azure-app-configuration-task.custom-build-release-task.AzureAppConfiguration@3
+              displayName: 'Get Global configurations'
+              inputs:
+                azureSubscription: 'spn-app-config-global'
+                ConfigstoreName: '$(app_configuration_name)'
+                KeyFilter: '$(calculationservice_config_keyfilter)'
+                TrimKeyPrefix: '$(calculationservice_trim_key_prefix)'
+                Label: '${{ parameters.env }}'
+
+            - task: replacetokens@4
+              displayName: 'Replace tokens in values.yaml'
+              inputs:
+                rootDirectory: '$(build.SourcesDirectory)/release/helm/CalculationService'
+                targetFiles: 'values.yaml'
+                tokenPrefix: '#{'
+                tokenSuffix: '}#'
+
+            - task: replacetokens@4
+              displayName: 'Replace tokens in secrets.yaml'
+              inputs:
+                rootDirectory: '$(build.SourcesDirectory)/Newton/src/CalculationService/deployment'
+                targetFiles: 'secrets.yaml'
+                tokenPrefix: '#{'
+                tokenSuffix: '}#'
+
+            - powershell: |
+                Get-Content -path $(build.SourcesDirectory)/release/helm/CalculationService/values.yaml
+                Get-Content -path $(build.SourcesDirectory)/Newton/src/CalculationService/deployment/secrets.yaml
+
+            - task: HelmInstaller@0
+              displayName: 'Install Helm'
+              inputs:
+                helmVersion: 3.4.1
+                checkLatestHelmVersion: false
+
+            - task: Kubernetes@1
+              inputs:
+                connectionType: 'Kubernetes Service Connection'
+                kubernetesServiceEndpoint: 'sc-aks-${{ parameters.env }}'
+                command: 'login'
+
+            - powershell: |
+                $namespace = "${{ parameters.env }}"+"-"+"${{ parameters.appname }}"
+
+                write-host "namespace name:" $namespace
+                kubectl create ns $namespace
+                kubectl apply -f '$(build.SourcesDirectory)/Newton/src/CalculationService/deployment/secrets.yaml' -n $namespace
+
+                [System.Environment]::SetEnvironmentVariable('HELM_EXPERIMENTAL_OCI','1')
+                
+                # Login to ACR   
+                helm registry login $(acrname).azurecr.io --username $(acrusername) --password $(acrpassword)
+                
+                # pull the chart (required before export)
+                helm chart pull $(acrname).azurecr.io/helm/${{ parameters.appname }}:$(buildname)
+                
+                # export the chart to ./$(projectName)
+                helm chart export $(acrname).azurecr.io/helm/${{ parameters.appname  }}:$(buildname)
+                
+                # helm upgrade with fallback to install
+                helm upgrade ${{ parameters.appname }} ./${{ parameters.appname  }} -f $(build.SourcesDirectory)/release/helm/CalculationService/values.yaml `
+                    --install `
+                    --namespace $namespace `
+                    --wait `
+                    --timeout=5h `
+                    --set namespace=$namespace `
+                    --set appname="${{ parameters.appname }}" --debug
+              displayName: 'Deploy Helm Chart'
+            
