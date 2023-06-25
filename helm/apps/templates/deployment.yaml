@@ -93,45 +93,47 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           tty: {{ .Values.deployment.tty }}
-          {{- if .Values.deployment.volumes }}
           volumeMounts:
-          {{- if .Values.deployment.volumes.configmap }}
-          - name: configmap-{{  $name }}
-            mountPath: {{ .Values.deployment.volumes.configmap.mountPath }}
-            subPath: {{ .Values.deployment.volumes.configmap.subPath }}
-          {{- end }}
-          {{- if .Values.deployment.volumes.secret }}
-          - name: secret-{{  $name }}
-            mountPath: {{ .Values.deployment.volumes.secret.mountPath }}
-            readOnly: true
-          {{- end }}
-          {{- if .Values.deployment.volumes.csiProvider }}
-          - name: csi-{{  $name }}
-            mountPath: {{ .Values.deployment.volumes.secret.mountPath }}
-            readOnly: true
-          {{- end }}
-          {{- end }}                    
-      {{- if .Values.deployment.volumes }}
+          {{- range .Values.deployment.configmapMounts }}
+          - name: {{ .name | default "configmap-{{  $name }}" }}
+            mountPath: {{ .mountPath }}
+            {{- if .subPath }}
+            subPath: {{ .subPath }}
+            {{- end}}
+            readOnly: {{ .readOnly }}
+          {{- end }} 
+          {{- range .Values.deployment.secretMounts }}
+          - name: {{ .name | default "secret-{{  $name }}" }}
+            mountPath: {{ .mountPath }}
+            {{- if .subPath }}
+            subPath: {{ .subPath }}
+            {{- end}}
+            readOnly: {{ .readOnly }}
+          {{- end }} 
+          {{- range .Values.deployment.csiProviderMounts }}
+          - name: {{ .name | default "csi-{{  $name }}" }}
+            mountPath: {{ .mountPath }}
+            readOnly: {{ .readOnly }}
+          {{- end }}                                      
       volumes:
-      {{- if .Values.deployment.volumes.configmap }}
-      - name: configmap-{{ $name }}
+      {{- range .Values.deployment.configmapMounts }}
+      - name: {{ .name | default "configmap-{{ $name }}" }}
         configMap:
-          name: configmap-{{ $name }}      
-      {{- end }}
-      {{- if .Values.deployment.volumes.secret }}
-      - name: secret-{{ $name }}
+          name: {{ .configMap | default "configmap-{{ $name }}" }}      
+      {{- end }} 
+      {{- range .Values.deployment.secretMounts }}
+      - name: {{ .name | default "secret-{{ $name }}" }}
         secret:
-          secretName: secret-{{ $name }}
-      {{- end }}    
-      {{- if .Values.deployment.volumes.csiProvider }}
-      - name: csi-{{ $name }}
+          secretName: {{ .secret | default "secret-{{ $name }}" }}      
+      {{- end }}
+      {{- range .Values.deployment.csiProviderMounts }}
+      - name: {{ .name | default "csi-{{ $name }}" }}
         csi:
           driver: secrets-store.csi.k8s.io
-          readOnly: true
+          readOnly: {{ .readOnly }}
           volumeAttributes:
-            secretProviderClass: {{ .Values.deployment.volumes.csiProvider.secretProviderClass }}          
-      {{- end }}
-      {{- end }}      
+            secretProviderClass: {{ .secretProviderClass }}
+      {{- end }}               
       {{- with .Values.global.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
