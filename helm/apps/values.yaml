@@ -270,16 +270,23 @@ deployment:
       cpu: 100m
       memory: 128Mi
   tty: true
-  ConfigmapMounts:
+  configmapMounts:
   - name: certs-configmap
     mountPath: /etc/grafana/ssl/
     subPath: certificates.crt # (optional)
     configMap: certs-configmap
-    readOnly: true
-  csiProviderMounts: {}
-  secretMounts: {}
-  VolumeMounts: []
-
+    readOnly: true  
+  csiProviderMounts:
+  - name: csi-test1
+    secretProviderClass: keyVault
+    mountPath: /mnt/secrets
+    readOnly: true      
+  secretMounts: 
+  - name: secret-test1
+    mountPath: /etc/grafana/ssl/
+    subPath:  # (optional)
+    secret: secret-test1
+    readOnly: true    
 
 
 pod:
